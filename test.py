@@ -4,6 +4,7 @@ from utils.datasets import *
 from utils.parse_config import *
 
 import argparse
+import os
 import tqdm
 
 import torch
@@ -89,15 +90,17 @@ if __name__ == "__main__":
         batch_size=8,
     )
 
+    # Print AP and mAP.
     print("Average Precisions:")
     for i, c in enumerate(ap_class):
-        print('\tClass {} ({}) - AP: {}'.format(c, class_names[c], round(AP[i] * 100, 2)))
+        print('\tClass {} ({}) - AP: {:.02f}'.format(c, class_names[c], AP[i] * 100))
+    print('mAP: {:.02f}'.format(AP.mean() * 100))
 
-    print('mAP: {}'.format(round(AP.mean() * 100, 2)))
-
-    with open('output/test.txt', mode='w') as f:
-        f.write('Average Precisions:\n')
+    # Saving AP and mAP to csv file.
+    if not os.path.exists('./output'):
+        os.mkdir('./output')
+    with open('./output/test.csv', mode='w') as f:
         for i, c in enumerate(ap_class):
-            f.write('\tClass {} ({}) - AP: {}\n'.format(c, class_names[c], round(AP[i] * 100, 2)))
-        f.write('mAP: {}\n'.format(round(AP.mean() * 100, 2)))
-    print('Saved output.')
+            f.write('{},{},{:.02f}\n'.format(c, class_names[c], AP[i] * 100))
+        f.write('mAP,{:.02f}\n'.format(AP.mean() * 100))
+    print('Saved output files.')
