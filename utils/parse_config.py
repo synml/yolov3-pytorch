@@ -1,5 +1,3 @@
-
-
 def parse_model_config(path):
     """Parses the yolo-v3 layer configuration file and returns module definitions"""
     file = open(path, 'r')
@@ -19,6 +17,7 @@ def parse_model_config(path):
             module_defs[-1][key.rstrip()] = value.strip()
 
     return module_defs
+
 
 def parse_data_config(path):
     """Parses the data configuration file"""
