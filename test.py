@@ -49,7 +49,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", type=int, default=128, help="size of each image batch")
+    parser.add_argument("--batch_size", type=int, default=512, help="size of each image batch")
     parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
     parser.add_argument("--data_config", type=str, default="config/coco.data", help="path to data config file")
     parser.add_argument("--weights_path", type=str, default="weights/yolov3.weights", help="path to weights file")
@@ -91,6 +91,13 @@ if __name__ == "__main__":
 
     print("Average Precisions:")
     for i, c in enumerate(ap_class):
-        print("+ Class '{}' ({}) - AP: {}".format(c, class_names[c], round(AP[i] * 100, 2)))
+        print('\tClass {} ({}) - AP: {}'.format(c, class_names[c], round(AP[i] * 100, 2)))
 
-    print(f"mAP: {AP.mean()}")
+    print('mAP: {}'.format(round(AP.mean() * 100, 2)))
+
+    with open('output/test.txt', mode='w') as f:
+        f.write('Average Precisions:\n')
+        for i, c in enumerate(ap_class):
+            f.write('\tClass {} ({}) - AP: {}\n'.format(c, class_names[c], round(AP[i] * 100, 2)))
+        f.write('mAP: {}\n'.format(round(AP.mean() * 100, 2)))
+    print('Saved output.')
