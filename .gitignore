@@ -1,9 +1,9 @@
 #Project ignores
-.idea
-backup
-checkpoints
-logs
-output
+.idea/
+backup/
+checkpoints/
+logs/
+output/
 weights/darknet53.conv.74
 *.weights
 
