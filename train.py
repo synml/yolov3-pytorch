@@ -42,8 +42,8 @@ if __name__ == "__main__":
                         help="if True computes mAP every tenth batch")
     parser.add_argument("--multiscale_training", default=True,
                         help="allow for multi-scale training")
-    opt = parser.parse_args()
-    print(opt)
+    args = parser.parse_args()
+    print(args)
 
     logger = Logger("logs")
 
@@ -53,29 +53,29 @@ if __name__ == "__main__":
     os.makedirs("checkpoints", exist_ok=True)
 
     # Get data configuration
-    data_config = parse_data_config(opt.data_config)
+    data_config = parse_data_config(args.data_config)
     train_path = data_config["train"]
     valid_path = data_config["valid"]
     class_names = load_classes(data_config["names"])
 
     # Initiate model
-    model = Darknet(opt.model_def).to(device)
+    model = Darknet(args.model_def).to(device)
     model.apply(weights_init_normal)
 
     # If specified we start from checkpoint
-    if opt.pretrained_weights:
-        if opt.pretrained_weights.endswith(".pth"):
-            model.load_state_dict(torch.load(opt.pretrained_weights))
+    if args.pretrained_weights:
+        if args.pretrained_weights.endswith(".pth"):
+            model.load_state_dict(torch.load(args.pretrained_weights))
         else:
-            model.load_darknet_weights(opt.pretrained_weights)
+            model.load_darknet_weights(args.pretrained_weights)
 
     # Get dataloader
-    dataset = ListDataset(train_path, augment=True, multiscale=opt.multiscale_training)
+    dataset = ListDataset(train_path, augment=True, multiscale=args.multiscale_training)
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=opt.batch_size,
+        batch_size=args.batch_size,
         shuffle=True,
-        num_workers=opt.n_cpu,
+        num_workers=args.n_cpu,
         pin_memory=True,
         collate_fn=dataset.collate_fn,
     )
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         "conf_noobj",
     ]
 
-    for epoch in range(opt.epochs):
+    for epoch in range(args.epochs):
         model.train()
         start_time = time.time()
         for batch_i, (_, imgs, targets) in enumerate(dataloader):
@@ -111,7 +111,7 @@ if __name__ == "__main__":
             loss, outputs = model(imgs, targets)
             loss.backward()
 
-            if batches_done % opt.gradient_accumulations:
+            if batches_done % args.gradient_accumulations:
                 # Accumulates gradient before each step
                 optimizer.step()
                 optimizer.zero_grad()
@@ -120,7 +120,7 @@ if __name__ == "__main__":
             #   Log progress
             # ----------------
 
-            log_str = "\n---- [Epoch %d/%d, Batch %d/%d] ----\n" % (epoch, opt.epochs, batch_i, len(dataloader))
+            log_str = "\n---- [Epoch %d/%d, Batch %d/%d] ----\n" % (epoch, args.epochs, batch_i, len(dataloader))
 
             metric_table = [["Metrics", *[f"YOLO Layer {i}" for i in range(len(model.yolo_layers))]]]
 
@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
             model.seen += imgs.size(0)
 
-        if epoch % opt.evaluation_interval == 0:
+        if epoch % args.evaluation_interval == 0:
             print("\n---- Evaluating Model ----")
             # Evaluate the model on the validation set
             precision, recall, AP, f1, ap_class = evaluate(
@@ -162,7 +162,7 @@ if __name__ == "__main__":
                 iou_thres=0.5,
                 conf_thres=0.5,
                 nms_thres=0.5,
-                img_size=opt.img_size,
+                img_size=args.img_size,
                 batch_size=8,
             )
             evaluation_metrics = [
@@ -180,5 +180,5 @@ if __name__ == "__main__":
             print(AsciiTable(ap_table).table)
             print(f"---- mAP {AP.mean()}")
 
-        if epoch % opt.checkpoint_interval == 0:
+        if epoch % args.checkpoint_interval == 0:
             torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d.pth" % epoch)

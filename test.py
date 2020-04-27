@@ -60,33 +60,33 @@ if __name__ == "__main__":
     parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
-    opt = parser.parse_args()
-    print(opt)
+    args = parser.parse_args()
+    print(args)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    data_config = parse_data_config(opt.data_config)
+    data_config = parse_data_config(args.data_config)
     valid_path = data_config["valid"]
     class_names = load_classes(data_config["names"])
 
     # Initiate model
-    model = Darknet(opt.model_def).to(device)
-    if opt.weights_path.endswith(".weights"):
+    model = Darknet(args.model_def).to(device)
+    if args.weights_path.endswith(".weights"):
         # Load darknet weights
-        model.load_darknet_weights(opt.weights_path)
+        model.load_darknet_weights(args.weights_path)
     else:
         # Load checkpoint weights
-        model.load_state_dict(torch.load(opt.weights_path))
+        model.load_state_dict(torch.load(args.weights_path))
 
     print("Compute mAP...")
 
     precision, recall, AP, f1, ap_class = evaluate(
         model,
         path=valid_path,
-        iou_thres=opt.iou_thres,
-        conf_thres=opt.conf_thres,
-        nms_thres=opt.nms_thres,
-        img_size=opt.img_size,
+        iou_thres=args.iou_thres,
+        conf_thres=args.conf_thres,
+        nms_thres=args.nms_thres,
+        img_size=args.img_size,
         batch_size=8,
     )
 

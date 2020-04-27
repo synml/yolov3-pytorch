@@ -29,33 +29,33 @@ if __name__ == "__main__":
     parser.add_argument("--n_cpu", type=int, default=0, help="number of cpu threads to use during batch generation")
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     parser.add_argument("--checkpoint_model", type=str, help="path to checkpoint model")
-    opt = parser.parse_args()
-    print(opt)
+    args = parser.parse_args()
+    print(args)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     os.makedirs("output", exist_ok=True)
 
     # Set up model
-    model = Darknet(opt.model_def, img_size=opt.img_size).to(device)
+    model = Darknet(args.model_def, img_size=args.img_size).to(device)
 
-    if opt.weights_path.endswith(".weights"):
+    if args.weights_path.endswith(".weights"):
         # Load darknet weights
-        model.load_darknet_weights(opt.weights_path)
+        model.load_darknet_weights(args.weights_path)
     else:
         # Load checkpoint weights
-        model.load_state_dict(torch.load(opt.weights_path))
+        model.load_state_dict(torch.load(args.weights_path))
 
     model.eval()  # Set in evaluation mode
 
     dataloader = DataLoader(
-        ImageFolder(opt.image_folder, img_size=opt.img_size),
-        batch_size=opt.batch_size,
+        ImageFolder(args.image_folder, img_size=args.img_size),
+        batch_size=args.batch_size,
         shuffle=False,
-        num_workers=opt.n_cpu,
+        num_workers=args.n_cpu,
     )
 
-    classes = load_classes(opt.class_path)  # Extracts class labels from file
+    classes = load_classes(args.class_path)  # Extracts class labels from file
 
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         # Get detections
         with torch.no_grad():
             detections = model(input_imgs)
-            detections = non_max_suppression(detections, opt.conf_thres, opt.nms_thres)
+            detections = non_max_suppression(detections, args.conf_thres, args.nms_thres)
 
         # Log progress
         current_time = time.time()
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         # Draw bounding boxes and labels of detections
         if detections is not None:
             # Rescale boxes to original image
-            detections = rescale_boxes(detections, opt.img_size, img.shape[:2])
+            detections = rescale_boxes(detections, args.img_size, img.shape[:2])
             unique_labels = detections[:, -1].cpu().unique()
             n_cls_preds = len(unique_labels)
             bbox_colors = random.sample(colors, n_cls_preds)
