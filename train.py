@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--epochs", type=int, default=100,
                         help="number of epochs")
-    parser.add_argument("--batch_size", type=int, default=8,
+    parser.add_argument("--batch_size", type=int, default=6,
                         help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2,
                         help="number of gradient accums before step")
