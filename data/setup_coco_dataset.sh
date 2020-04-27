@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# You have to download original files.
+# Download link will provide later... (but you can get them through Googling and little modifications.)
+
 # cd to dataset directory.
 cd ../../data/coco
 
@@ -20,5 +23,5 @@ cd ..
 mv ./yolov3/*.txt ./
 tar xzf ./yolov3/yolov3_annotations.tgz
 
-# Delete yolov3 directory
+# Delete yolov3 directory.
 rm -r ./yolov3
