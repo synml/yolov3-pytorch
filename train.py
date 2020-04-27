@@ -45,10 +45,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
-    logger = Logger("logs")
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    logger = Logger("logs")
+
+    # Make directories for output and checkpoint files.
     os.makedirs("output", exist_ok=True)
     os.makedirs("checkpoints", exist_ok=True)
 
@@ -71,34 +72,32 @@ if __name__ == "__main__":
 
     # Get dataloader
     dataset = ListDataset(train_path, augment=True, multiscale=args.multiscale_training)
-    dataloader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=args.n_cpu,
-        pin_memory=True,
-        collate_fn=dataset.collate_fn,
-    )
+    dataloader = torch.utils.data.DataLoader(dataset,
+                                             batch_size=args.batch_size,
+                                             shuffle=True,
+                                             num_workers=args.n_cpu,
+                                             pin_memory=True,
+                                             collate_fn=dataset.collate_fn)
 
+    # Set optimizer
     optimizer = torch.optim.Adam(model.parameters())
 
-    metrics = [
-        "grid_size",
-        "loss",
-        "x",
-        "y",
-        "w",
-        "h",
-        "conf",
-        "cls",
-        "cls_acc",
-        "recall50",
-        "recall75",
-        "precision",
-        "conf_obj",
-        "conf_noobj",
-    ]
+    metrics = ["grid_size",
+               "loss",
+               "x",
+               "y",
+               "w",
+               "h",
+               "conf",
+               "cls",
+               "cls_acc",
+               "recall50",
+               "recall75",
+               "precision",
+               "conf_obj",
+               "conf_noobj"]
 
+    # Training code.
     for epoch in range(args.epochs):
         model.train()
         start_time = time.time()
@@ -137,7 +136,7 @@ if __name__ == "__main__":
                 for j, yolo in enumerate(model.yolo_layers):
                     for name, metric in yolo.metrics.items():
                         if name != "grid_size":
-                            tensorboard_log += [(f"{name}_{j+1}", metric)]
+                            tensorboard_log += [(f"{name}_{j + 1}", metric)]
                 tensorboard_log += [("loss", loss.item())]
                 logger.list_of_scalars_summary(tensorboard_log, batches_done)
 
@@ -156,15 +155,13 @@ if __name__ == "__main__":
         if epoch % args.evaluation_interval == 0:
             print("\n---- Evaluating Model ----")
             # Evaluate the model on the validation set
-            precision, recall, AP, f1, ap_class = evaluate(
-                model,
-                path=valid_path,
-                iou_thres=0.5,
-                conf_thres=0.5,
-                nms_thres=0.5,
-                img_size=args.img_size,
-                batch_size=8,
-            )
+            precision, recall, AP, f1, ap_class = evaluate(model,
+                                                           path=valid_path,
+                                                           iou_thres=0.5,
+                                                           conf_thres=0.5,
+                                                           nms_thres=0.5,
+                                                           img_size=args.img_size,
+                                                           batch_size=8)
             evaluation_metrics = [
                 ("val_precision", precision.mean()),
                 ("val_recall", recall.mean()),
