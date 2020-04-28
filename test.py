@@ -4,6 +4,7 @@ from utils.datasets import *
 from utils.parse_config import *
 
 import argparse
+import csv
 import os
 import tqdm
 
@@ -92,15 +93,18 @@ if __name__ == "__main__":
 
     # Print AP and mAP.
     print("Average Precisions:")
-    for i, c in enumerate(ap_class):
-        print('\tClass {} ({}) - AP: {:.02f}'.format(c, class_names[c], AP[i] * 100))
+    for i, class_num in enumerate(ap_class):
+        print('\tClass {} ({}) - AP: {:.02f}'.format(class_num, class_names[class_num], AP[i] * 100))
     print('mAP: {:.02f}'.format(AP.mean() * 100))
 
     # Saving AP and mAP to csv file.
     if not os.path.exists('./output'):
         os.mkdir('./output')
     with open('./output/test.csv', mode='w') as f:
-        for i, c in enumerate(ap_class):
-            f.write('{},{},{:.02f}\n'.format(c, class_names[c], AP[i] * 100))
-        f.write('mAP,{:.02f}\n'.format(AP.mean() * 100))
-    print('Saved output files.')
+        writer = csv.writer(f, delimiter=',')
+
+        writer.writerow(['Class Number', 'Class Name', 'AP'])
+        for i, class_num in enumerate(ap_class):
+            writer.writerow([class_num, class_names[class_num], AP[i] * 100])
+        writer.writerow(['mAP', AP.mean() * 100, ' '])
+    print('Saved result csv file.')
