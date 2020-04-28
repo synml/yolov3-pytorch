@@ -6,6 +6,7 @@ from utils.parse_config import *
 import argparse
 import csv
 import os
+import time
 import tqdm
 
 import torch
@@ -100,7 +101,9 @@ if __name__ == "__main__":
     # Saving AP and mAP to csv file.
     if not os.path.exists('./output'):
         os.mkdir('./output')
-    with open('./output/test.csv', mode='w') as f:
+
+    now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
+    with open('./output/test{}.csv'.format(now), mode='w') as f:
         writer = csv.writer(f, delimiter=',')
 
         writer.writerow(['Class Number', 'Class Name', 'AP'])
