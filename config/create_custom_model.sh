@@ -5,8 +5,8 @@ NUM_CLASSES=$1
 echo "
 [net]
 # Testing
-#batch=1
-#subdivisions=1
+# batch=1
+# subdivisions=1
 # Training
 batch=16
 subdivisions=1
