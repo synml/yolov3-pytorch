@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
     parser.add_argument("--weights_path", type=str, default="weights/yolov3.weights", help="path to weights file")
     parser.add_argument("--class_path", type=str, default="../../data/coco/coco_classes.txt", help="path to class label file")
-    parser.add_argument("--conf_thres", type=float, default=0.5, help="object confidence threshold")
+    parser.add_argument("--conf_thres", type=float, default=0.1, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
     parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     cmap = plt.get_cmap("tab20b")
     colors = [cmap(i) for i in np.linspace(0, 1, 20)]
 
-    os.makedirs("output", exist_ok=True)
+    os.makedirs(args.save_folder, exist_ok=True)
 
     print("\nSaving images:")
     # Iterate through images and save plot of detections
