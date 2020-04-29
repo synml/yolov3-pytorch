@@ -19,7 +19,7 @@ from matplotlib.ticker import NullLocator
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_folder", type=str, default="../../data/coco", help="path to image folder")
+    parser.add_argument("--image_folder", type=str, default="../../data/coco/images/val2017", help="path to image folder")
     parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
     parser.add_argument("--weights_path", type=str, default="weights/yolov3.weights", help="path to weights file")
     parser.add_argument("--class_path", type=str, default="../../data/coco/coco_classes.txt", help="path to class label file")
@@ -66,6 +66,10 @@ if __name__ == "__main__":
     for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
         # Configure input
         input_imgs = Variable(input_imgs.type(Tensor))
+
+        # Except if the channel of the image is 1
+        if input_imgs.size()[1] == 1:
+            continue
 
         # Get detections
         with torch.no_grad():
