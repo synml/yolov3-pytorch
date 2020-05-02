@@ -1,7 +1,7 @@
 from torch.utils.tensorboard import SummaryWriter
 
 
-class Logger(object):
+class Logger:
     def __init__(self, log_dir):
         """Create a summary writer logging to log_dir."""
         self.writer = SummaryWriter(log_dir=log_dir)
