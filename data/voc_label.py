@@ -17,8 +17,8 @@ Pascal VOC의 원본 annotation을 Yolo v3의 Object Detection label format으�
 상대경로로 바꿔주려면 VSCode에서 알맞게 변환해줍니다.
 """
 
-import xml.etree.ElementTree as ET
 import os
+import xml.etree.ElementTree as ET
 
 sets = [('2012', 'train'), ('2012', 'val'), ('2007', 'train'), ('2007', 'val'), ('2007', 'test')]
 

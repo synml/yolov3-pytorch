@@ -1,8 +1,3 @@
-from models import *
-from utils.utils import *
-from utils.datasets import *
-from utils.parse_config import *
-
 import argparse
 import csv
 import os
@@ -12,6 +7,11 @@ import tqdm
 import torch
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
+
+from models import *
+from utils.utils import *
+from utils.datasets import *
+from utils.parse_config import *
 
 
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size):
