@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 
 from utils.parse_config import *
-from utils.utils import build_targets, to_cpu, non_max_suppression
+from utils.utils import build_targets, to_cpu
 
 
 def create_modules(module_defs):
@@ -130,8 +130,6 @@ class YOLOLayer(nn.Module):
 
         # Tensors for cuda support
         FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
-        LongTensor = torch.cuda.LongTensor if x.is_cuda else torch.LongTensor
-        ByteTensor = torch.cuda.ByteTensor if x.is_cuda else torch.ByteTensor
 
         self.img_dim = img_dim
         num_samples = x.size(0)
@@ -337,3 +335,8 @@ class Darknet(nn.Module):
                 conv_layer.weight.data.cpu().numpy().tofile(fp)
 
         fp.close()
+
+
+if __name__ == '__main__':
+    model = Darknet("config/yolov3.cfg")
+    print(model)
