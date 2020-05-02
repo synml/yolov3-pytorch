@@ -329,5 +329,8 @@ class Darknet(nn.Module):
 
 
 if __name__ == '__main__':
-    model = Darknet("config/yolov3.cfg")
-    print(model)
+    model = Darknet('config/yolov3.cfg')
+
+    module_defs = parse_model_config('config/yolov3.cfg')
+    _, module_list = create_modules(module_defs)
+    print(module_list)
