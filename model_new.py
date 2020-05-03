@@ -157,7 +157,7 @@ class YOLOv3(nn.Module):
                     residual = x
                     out = module['block_{}'.format(i + 1)](x)
                     x = out + residual
-                residual_output[key].append(x)
+                residual_output[key] = x
 
         # Yolov3 layer forward
         conv_b1 = self.conv_block1(residual_output['residual_5_4x'])
@@ -176,19 +176,19 @@ class YOLOv3(nn.Module):
         return scale1, scale2, scale3
 
     def make_darknet53(self):
-        modules = nn.ModuleDict(
-            {'conv_1': self.make_conv(3, 32, kernel_size=3),
-             'conv_2': self.make_conv(32, 64, kernel_size=3, stride=2),
-             'residual_1_1x': self.make_residual_block(in_channels=64, num_blocks=1),
-             'conv_3': self.make_conv(64, 128, kernel_size=3, stride=2),
-             'residual_2_2x': self.make_residual_block(in_channels=128, num_blocks=2),
-             'conv_4': self.make_conv(128, 256, kernel_size=3, stride=2),
-             'residual_3_8x': self.make_residual_block(in_channels=256, num_blocks=8),
-             'conv_5': self.make_conv(256, 512, kernel_size=3, stride=2),
-             'residual_4_8x': self.make_residual_block(in_channels=512, num_blocks=8),
-             'conv_6': self.make_conv(512, 1024, kernel_size=3, stride=2),
-             'residual_5_4x': self.make_residual_block(in_channels=1024, num_blocks=4)}
-        )
+        modules = nn.ModuleDict()
+
+        modules['conv_1'] = self.make_conv(3, 32, kernel_size=3)
+        modules['conv_2'] = self.make_conv(32, 64, kernel_size=3, stride=2)
+        modules['residual_1_1x'] = self.make_residual_block(in_channels=64, num_blocks=1)
+        modules['conv_3'] = self.make_conv(64, 128, kernel_size=3, stride=2)
+        modules['residual_2_2x'] = self.make_residual_block(in_channels=128, num_blocks=2)
+        modules['conv_4'] = self.make_conv(128, 256, kernel_size=3, stride=2)
+        modules['residual_3_8x'] = self.make_residual_block(in_channels=256, num_blocks=8)
+        modules['conv_5'] = self.make_conv(256, 512, kernel_size=3, stride=2)
+        modules['residual_4_8x'] = self.make_residual_block(in_channels=512, num_blocks=8)
+        modules['conv_6'] = self.make_conv(512, 1024, kernel_size=3, stride=2)
+        modules['residual_5_4x'] = self.make_residual_block(in_channels=1024, num_blocks=4)
         return modules
 
     def make_conv(self, in_channels: int, out_channels: int, kernel_size, stride=1, padding=1):
