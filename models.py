@@ -7,7 +7,7 @@ from utils.parse_config import *
 from utils.utils import build_targets, to_cpu
 
 
-def create_modules(module_defs: list, img_size: int):
+def create_modules(module_defs, img_size: int):
     """
     Constructs module list of layer blocks from module configuration in module_defs
     """
