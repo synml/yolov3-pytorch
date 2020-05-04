@@ -153,14 +153,10 @@ class YOLOLayer(nn.Module):
         pred_boxes[..., 2] = torch.exp(w.data) * self.anchor_w
         pred_boxes[..., 3] = torch.exp(h.data) * self.anchor_h
 
-        output = torch.cat(
-            (
-                pred_boxes.view(num_samples, -1, 4) * self.stride,
+        pred = (pred_boxes.view(num_samples, -1, 4) * self.stride,
                 pred_conf.view(num_samples, -1, 1),
-                pred_cls.view(num_samples, -1, self.num_classes),
-            ),
-            -1,
-        )
+                pred_cls.view(num_samples, -1, self.num_classes))
+        output = torch.cat(pred, -1)
 
         if targets is None:
             return output, 0
@@ -236,7 +232,8 @@ class Darknet(nn.Module):
             if module_def["type"] in ["convolutional", "upsample", "maxpool"]:
                 x = module(x)
             elif module_def["type"] == "route":
-                x = torch.cat([layer_outputs[int(layer_i)] for layer_i in module_def["layers"].split(",")], 1)
+                cat = [layer_outputs[int(layer_i)] for layer_i in module_def["layers"].split(",")]
+                x = torch.cat(cat, 1)
             elif module_def["type"] == "shortcut":
                 layer_i = int(module_def["from"])
                 x = layer_outputs[-1] + layer_outputs[layer_i]
