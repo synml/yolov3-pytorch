@@ -5,6 +5,7 @@ import numpy as np
 
 from utils.parse_config import *
 from utils.utils import build_targets, to_cpu
+import utils.logger
 
 
 def create_modules(module_defs, img_size: int):
@@ -334,3 +335,7 @@ if __name__ == '__main__':
     print(model)
     test = torch.rand([1, 3, 416, 416])
     y = model(test)
+
+    logger = utils.logger.Logger('./logs')
+    logger.add_graph(model, test)
+    logger.close()
