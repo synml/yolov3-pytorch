@@ -94,7 +94,7 @@ class EmptyLayer(nn.Module):
 class YOLOLayer(nn.Module):
     """Detection layer"""
 
-    def __init__(self, anchors, num_classes: int, img_dim=416):
+    def __init__(self, anchors, num_classes: int, img_dim: int):
         super(YOLOLayer, self).__init__()
         self.anchors = anchors
         self.num_anchors = len(anchors)
@@ -215,12 +215,11 @@ class YOLOLayer(nn.Module):
 class Darknet(nn.Module):
     """YOLOv3 object detection model"""
 
-    def __init__(self, config_path: str, img_size=416):
+    def __init__(self, config_path: str, img_size: int):
         super(Darknet, self).__init__()
         self.module_defs = parse_model_config(config_path)
         self.module_list = create_modules(self.module_defs, img_size)
         self.yolo_layers = [layer[0] for layer in self.module_list if hasattr(layer[0], "metrics")]
-        self.img_size = img_size
         self.seen = 0
         self.header_info = np.array([0, 0, 0, self.seen, 0], dtype=np.int32)
 
@@ -330,7 +329,7 @@ class Darknet(nn.Module):
 
 
 if __name__ == '__main__':
-    model = Darknet('config/yolov3.cfg')
+    model = Darknet('config/yolov3.cfg', img_size=416)
     print(model)
     test = torch.rand([1, 3, 416, 416])
     y = model(test)

@@ -59,7 +59,7 @@ valid_path = data_config["valid"]
 class_names = load_classes(data_config["names"])
 
 # Initiate model
-model = Darknet(args.model_def).to(device)
+model = Darknet(args.model_def, img_size=args.img_size).to(device)
 model.apply(weights_init_normal)
 
 # If specified we start from checkpoint

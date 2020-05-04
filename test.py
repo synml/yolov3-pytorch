@@ -78,7 +78,7 @@ if __name__ == "__main__":
     class_names = load_classes(data_config["names"])
 
     # Initiate model
-    model = Darknet(args.model_def).to(device)
+    model = Darknet(args.model_def, img_size=args.img_size).to(device)
     if args.weights_path.endswith(".weights"):
         # Load darknet weights
         model.load_darknet_weights(args.weights_path)
