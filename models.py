@@ -7,12 +7,13 @@ from utils.parse_config import *
 from utils.utils import build_targets, to_cpu
 
 
-def create_modules(module_defs):
+def create_modules(module_defs: list, img_size: int):
     """
     Constructs module list of layer blocks from module configuration in module_defs
     """
-    hyperparams = module_defs.pop(0)
-    output_filters = [int(hyperparams["channels"])]
+    module_defs.pop(0)
+    filters = 0
+    output_filters = [3]
     module_list = nn.ModuleList()
     for module_i, module_def in enumerate(module_defs):
         modules = nn.Sequential()
@@ -58,7 +59,7 @@ def create_modules(module_defs):
             anchors = [(anchors[i], anchors[i + 1]) for i in range(0, len(anchors), 2)]
             anchors = [anchors[i] for i in anchor_idxs]
             num_classes = int(module_def["classes"])
-            img_size = int(hyperparams["height"])
+            img_size = img_size
             # Define detection layer
             yolo_layer = YOLOLayer(anchors, num_classes, img_size)
             modules.add_module(f"yolo_{module_i}", yolo_layer)
@@ -66,7 +67,7 @@ def create_modules(module_defs):
         module_list.append(modules)
         output_filters.append(filters)
 
-    return hyperparams, module_list
+    return module_list
 
 
 class Upsample(nn.Module):
@@ -92,7 +93,7 @@ class EmptyLayer(nn.Module):
 class YOLOLayer(nn.Module):
     """Detection layer"""
 
-    def __init__(self, anchors, num_classes, img_dim=416):
+    def __init__(self, anchors, num_classes: int, img_dim=416):
         super(YOLOLayer, self).__init__()
         self.anchors = anchors
         self.num_anchors = len(anchors)
@@ -217,10 +218,10 @@ class YOLOLayer(nn.Module):
 class Darknet(nn.Module):
     """YOLOv3 object detection model"""
 
-    def __init__(self, config_path, img_size=416):
+    def __init__(self, config_path: str, img_size=416):
         super(Darknet, self).__init__()
         self.module_defs = parse_model_config(config_path)
-        self.hyperparams, self.module_list = create_modules(self.module_defs)
+        self.module_list = create_modules(self.module_defs, img_size)
         self.yolo_layers = [layer[0] for layer in self.module_list if hasattr(layer[0], "metrics")]
         self.img_size = img_size
         self.seen = 0
@@ -330,7 +331,6 @@ class Darknet(nn.Module):
 
 if __name__ == '__main__':
     model = Darknet('config/yolov3.cfg')
-
-    module_defs = parse_model_config('config/yolov3.cfg')
-    _, module_list = create_modules(module_defs)
-    print(module_list)
+    print(model)
+    test = torch.rand([1, 3, 416, 416])
+    y = model(test)

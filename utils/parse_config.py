@@ -1,4 +1,4 @@
-def parse_model_config(path):
+def parse_model_config(path: str):
     """Parses the yolo-v3 layer configuration file and returns module definitions"""
     with open(path, 'r') as f:
         lines = f.read().split('\n')
@@ -19,7 +19,7 @@ def parse_model_config(path):
         return module_defs
 
 
-def parse_data_config(path):
+def parse_data_config(path: str):
     """Parses the data configuration file"""
     options = dict()
     with open(path, 'r') as fp:
