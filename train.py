@@ -5,8 +5,7 @@ import time
 
 import torch
 from torch.utils.data import DataLoader
-from torch.autograd import Variable
-from terminaltables import AsciiTable
+import tqdm
 
 from models import *
 from utils.logger import *
@@ -37,8 +36,6 @@ parser.add_argument("--checkpoint_interval", type=int, default=1,
                     help="interval between saving model weights")
 parser.add_argument("--evaluation_interval", type=int, default=1,
                     help="interval evaluations on validation set")
-parser.add_argument("--compute_map", default=False,
-                    help="if True computes mAP every tenth batch")
 parser.add_argument("--multiscale_training", default=True,
                     help="allow for multi-scale training")
 args = parser.parse_args()
@@ -79,7 +76,7 @@ dataloader = torch.utils.data.DataLoader(dataset,
                                          collate_fn=dataset.collate_fn)
 
 # Set optimizer
-optimizer = torch.optim.Adam(model.parameters())
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 metrics = ["grid_size",
            "loss",
@@ -97,14 +94,15 @@ metrics = ["grid_size",
            "conf_noobj"]
 
 # Training code.
-for epoch in range(args.epochs):
+for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     model.train()
     start_time = time.time()
-    for batch_i, (_, imgs, targets) in enumerate(dataloader):
+
+    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Batch', leave=False)):
         batches_done = len(dataloader) * epoch + batch_i
 
-        imgs = Variable(imgs.to(device))
-        targets = Variable(targets.to(device), requires_grad=False)
+        imgs = imgs.to(device)
+        targets = targets.to(device)
 
         loss, outputs = model(imgs, targets)
         loss.backward()
@@ -114,21 +112,11 @@ for epoch in range(args.epochs):
             optimizer.step()
             optimizer.zero_grad()
 
-        # ----------------
-        #   Log progress
-        # ----------------
-
-        log_str = "\n---- [Epoch %d/%d, Batch %d/%d] ----\n" % (epoch, args.epochs, batch_i, len(dataloader))
-
-        metric_table = [["Metrics", *[f"YOLO Layer {i}" for i in range(len(model.yolo_layers))]]]
-
         # Log metrics at each YOLO layer
         for i, metric in enumerate(metrics):
             formats = {m: "%.6f" for m in metrics}
             formats["grid_size"] = "%2d"
             formats["cls_acc"] = "%.2f%%"
-            row_metrics = [formats[metric] % yolo.metrics.get(metric, 0) for yolo in model.yolo_layers]
-            metric_table += [[metric, *row_metrics]]
 
             # Tensorboard logging
             tensorboard_log = []
@@ -139,20 +127,9 @@ for epoch in range(args.epochs):
             tensorboard_log += [("loss", loss.item())]
             logger.list_of_scalars_summary(tensorboard_log, batches_done)
 
-        log_str += AsciiTable(metric_table).table
-        log_str += f"\nTotal loss {loss.item()}"
-
-        # Determine approximate time left for epoch
-        epoch_batches_left = len(dataloader) - (batch_i + 1)
-        time_left = datetime.timedelta(seconds=epoch_batches_left * (time.time() - start_time) / (batch_i + 1))
-        log_str += f"\n---- ETA {time_left}"
-
-        print(log_str)
-
         model.seen += imgs.size(0)
 
     if epoch % args.evaluation_interval == 0:
-        print("\n---- Evaluating Model ----")
         # Evaluate the model on the validation set
         precision, recall, AP, f1, ap_class = evaluate(model,
                                                        path=valid_path,
@@ -168,13 +145,6 @@ for epoch in range(args.epochs):
             ("val_f1", f1.mean()),
         ]
         logger.list_of_scalars_summary(evaluation_metrics, epoch)
-
-        # Print class APs and mAP
-        ap_table = [["Index", "Class name", "AP"]]
-        for i, c in enumerate(ap_class):
-            ap_table += [[c, class_names[c], "%.5f" % AP[i]]]
-        print(AsciiTable(ap_table).table)
-        print(f"---- mAP {AP.mean()}")
 
     if epoch % args.checkpoint_interval == 0:
         torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d.pth" % epoch)
