@@ -23,7 +23,7 @@ parser.add_argument("--model_def", type=str, default="config/yolov3.cfg",
                     help="path to model definition file")
 parser.add_argument("--data_config", type=str, default="config/coco.data",
                     help="path to data config file")
-parser.add_argument("--pretrained_weights", type=str, default='weights/darknet53.conv.74',
+parser.add_argument("--pretrained_weight", type=str, default='weights/darknet53.conv.74',
                     help="if specified starts from checkpoint model")
 parser.add_argument("--n_cpu", type=int, default=8,
                     help="number of cpu threads to use during batch generation")
