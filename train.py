@@ -1,7 +1,5 @@
 import argparse
-import datetime
 import os
-import time
 
 import torch
 from torch.utils.data import DataLoader
@@ -32,21 +30,14 @@ parser.add_argument("--n_cpu", type=int, default=8,
                     help="number of cpu threads to use during batch generation")
 parser.add_argument("--img_size", type=int, default=416,
                     help="size of each image dimension")
-parser.add_argument("--checkpoint_interval", type=int, default=1,
-                    help="interval between saving model weights")
-parser.add_argument("--evaluation_interval", type=int, default=1,
-                    help="interval evaluations on validation set")
 parser.add_argument("--multiscale_training", default=True,
                     help="allow for multi-scale training")
 args = parser.parse_args()
 print(args)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 logger = Logger("logs")
 
-# Make directories for output and checkpoint files.
-os.makedirs("output", exist_ok=True)
 os.makedirs("checkpoints", exist_ok=True)
 
 # Get data configuration
@@ -96,7 +87,6 @@ metrics = ["grid_size",
 # Training code.
 for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     model.train()
-    start_time = time.time()
 
     for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Batch', leave=False)):
         step = len(dataloader) * epoch + batch_i
@@ -112,39 +102,32 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
             optimizer.step()
             optimizer.zero_grad()
 
-        # Log metrics at each YOLO layer
-        for i, metric in enumerate(metrics):
-            formats = {m: "%.6f" for m in metrics}
-            formats["grid_size"] = "%2d"
-            formats["cls_acc"] = "%.2f%%"
-
-            # Tensorboard logging
-            tensorboard_log = []
-            for j, yolo in enumerate(model.yolo_layers):
-                for name, metric in yolo.metrics.items():
-                    if name != "grid_size":
-                        tensorboard_log += [(f"{name}_{j + 1}", metric)]
-            tensorboard_log += [("loss", loss.item())]
-            logger.list_of_scalars_summary(tensorboard_log, step)
+        # Tensorboard logging
+        tensorboard_log = []
+        for i, yolo in enumerate(model.yolo_layers):
+            for name, metric in yolo.metrics.items():
+                if name != "grid_size":
+                    tensorboard_log += [(f"{name}_{i + 1}", metric)]
+        tensorboard_log += [("loss", loss.item())]
+        logger.list_of_scalars_summary(tensorboard_log, step)
 
         model.seen += imgs.size(0)
 
-    if epoch % args.evaluation_interval == 0:
-        # Evaluate the model on the validation set
-        precision, recall, AP, f1, ap_class = evaluate(model,
-                                                       path=valid_path,
-                                                       iou_thres=0.5,
-                                                       conf_thres=0.5,
-                                                       nms_thres=0.5,
-                                                       img_size=args.img_size,
-                                                       batch_size=8)
-        evaluation_metrics = [
-            ("val_precision", precision.mean()),
-            ("val_recall", recall.mean()),
-            ("val_mAP", AP.mean()),
-            ("val_f1", f1.mean()),
-        ]
-        logger.list_of_scalars_summary(evaluation_metrics, epoch)
+    # Evaluate the model on the validation set
+    precision, recall, AP, f1, ap_class = evaluate(model,
+                                                   path=valid_path,
+                                                   iou_thres=0.5,
+                                                   conf_thres=0.5,
+                                                   nms_thres=0.5,
+                                                   img_size=args.img_size,
+                                                   batch_size=8)
+    evaluation_metrics = [
+        ("val_precision", precision.mean()),
+        ("val_recall", recall.mean()),
+        ("val_mAP", AP.mean()),
+        ("val_f1", f1.mean()),
+    ]
+    logger.list_of_scalars_summary(evaluation_metrics, epoch)
 
-    if epoch % args.checkpoint_interval == 0:
-        torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d.pth" % epoch)
+    # Save checkpoint file
+    torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d.pth" % epoch)
