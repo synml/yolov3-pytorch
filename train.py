@@ -67,10 +67,7 @@ dataloader = torch.utils.data.DataLoader(dataset,
                                          collate_fn=dataset.collate_fn)
 
 # Set optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
-
-# Set learning rate scheduler
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 metrics = ["grid_size",
            "loss",
@@ -115,8 +112,6 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         logger.list_of_scalars_summary(tensorboard_log, step)
 
         model.seen += imgs.size(0)
-
-    scheduler.step()
 
     # Evaluate the model on the validation set
     precision, recall, AP, f1, ap_class = evaluate(model,
