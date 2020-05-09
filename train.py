@@ -50,11 +50,11 @@ model = Darknet(args.model_def, img_size=args.img_size).to(device)
 model.apply(weights_init_normal)
 
 # If specified we start from checkpoint
-if args.pretrained_weights:
-    if args.pretrained_weights.endswith(".pth"):
-        model.load_state_dict(torch.load(args.pretrained_weights))
+if args.pretrained_weight:
+    if args.pretrained_weight.endswith(".pth"):
+        model.load_state_dict(torch.load(args.pretrained_weight))
     else:
-        model.load_darknet_weights(args.pretrained_weights)
+        model.load_darknet_weights(args.pretrained_weight)
 
 # Get dataloader
 dataset = ListDataset(train_path, augment=True, multiscale=args.multiscale_training)
