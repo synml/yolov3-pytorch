@@ -99,7 +99,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     start_time = time.time()
 
     for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Batch', leave=False)):
-        batches_done = len(dataloader) * epoch + batch_i
+        step = len(dataloader) * epoch + batch_i
 
         imgs = imgs.to(device)
         targets = targets.to(device)
@@ -107,7 +107,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         loss, outputs = model(imgs, targets)
         loss.backward()
 
-        if batches_done % args.gradient_accumulations:
+        if step % args.gradient_accumulations:
             # Accumulates gradient before each step
             optimizer.step()
             optimizer.zero_grad()
@@ -125,7 +125,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
                     if name != "grid_size":
                         tensorboard_log += [(f"{name}_{j + 1}", metric)]
             tensorboard_log += [("loss", loss.item())]
-            logger.list_of_scalars_summary(tensorboard_log, batches_done)
+            logger.list_of_scalars_summary(tensorboard_log, step)
 
         model.seen += imgs.size(0)
 
