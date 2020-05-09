@@ -12,7 +12,6 @@ from utils.datasets import *
 from utils.parse_config import *
 from test import evaluate
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=100,
                     help="number of epochs")
@@ -69,6 +68,9 @@ dataloader = torch.utils.data.DataLoader(dataset,
 # Set optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
+# Set learning rate scheduler
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.8)
+
 metrics = ["grid_size",
            "loss",
            "x",
@@ -112,6 +114,8 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         logger.list_of_scalars_summary(tensorboard_log, step)
 
         model.seen += imgs.size(0)
+
+    scheduler.step()
 
     # Evaluate the model on the validation set
     precision, recall, AP, f1, ap_class = evaluate(model,
