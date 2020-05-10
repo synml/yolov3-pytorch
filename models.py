@@ -229,13 +229,22 @@ class Darknet(nn.Module):
         layer_outputs, yolo_outputs = [], []
         for i, (module_def, module) in enumerate(zip(self.module_defs, self.module_list)):
             if module_def["type"] in ["convolutional", "upsample", "maxpool"]:
-                x = module(x)
+                if i <= 74:
+                    with torch.no_grad():
+                        x = module(x)
+                else:
+                    x = module(x)
             elif module_def["type"] == "route":
                 cat = [layer_outputs[int(layer_i)] for layer_i in module_def["layers"].split(",")]
                 x = torch.cat(cat, 1)
             elif module_def["type"] == "shortcut":
-                layer_i = int(module_def["from"])
-                x = layer_outputs[-1] + layer_outputs[layer_i]
+                if i <= 74:
+                    with torch.no_grad():
+                        layer_i = int(module_def["from"])
+                        x = layer_outputs[-1] + layer_outputs[layer_i]
+                else:
+                    layer_i = int(module_def["from"])
+                    x = layer_outputs[-1] + layer_outputs[layer_i]
             elif module_def["type"] == "yolo":
                 x, layer_loss = module[0](x, targets, img_dim)
                 loss += layer_loss
