@@ -86,6 +86,8 @@ metrics = ["grid_size",
            "conf_obj",
            "conf_noobj"]
 
+loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
+
 # Training code.
 for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     model.train()
@@ -103,6 +105,9 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
             # Accumulates gradient before each step
             optimizer.step()
             optimizer.zero_grad()
+
+        # Print total loss
+        loss_log.set_description_str('Loss: {:.6f}'.format(loss.item()))
 
         # Tensorboard logging
         tensorboard_log = []
