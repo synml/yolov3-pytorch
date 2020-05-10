@@ -69,7 +69,7 @@ dataloader = torch.utils.data.DataLoader(dataset,
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 # Set learning rate scheduler
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.8)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=9, gamma=0.8)
 
 metrics = ["grid_size",
            "loss",
