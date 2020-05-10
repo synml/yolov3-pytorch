@@ -15,7 +15,7 @@ from test import evaluate
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=100,
                     help="number of epochs")
-parser.add_argument("--batch_size", type=int, default=6,
+parser.add_argument("--batch_size", type=int, default=16,
                     help="size of each image batch")
 parser.add_argument("--gradient_accumulations", type=int, default=2,
                     help="number of gradient accums before step")
@@ -120,7 +120,8 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
 
         model.seen += imgs.size(0)
 
-    scheduler.step()
+    # Disable lr scheduler
+    # scheduler.step()
 
     # Evaluate the model on the validation set
     precision, recall, AP, f1, ap_class = evaluate(model,
