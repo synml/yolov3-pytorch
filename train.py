@@ -4,6 +4,8 @@ import os
 import torch
 from torch.utils.data import DataLoader
 import tqdm
+import time
+import shutil
 
 from models import *
 from utils.logger import *
@@ -37,6 +39,17 @@ print(args)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger = Logger("logs")
 
+# Backup previous training results
+now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
+backup_dir = os.path.join('backup', now)
+os.makedirs(backup_dir, exist_ok=True)
+
+if os.path.exists('checkpoints'):
+    shutil.move('checkpoints', backup_dir)
+if os.path.exists('logs'):
+    shutil.move('logs', backup_dir)
+
+# Make directory for saving checkpoint files
 os.makedirs("checkpoints", exist_ok=True)
 
 # Get data configuration
