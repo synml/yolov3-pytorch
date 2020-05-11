@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 import utils.utils as utils
+import utils.logger
 
 
 class YOLODetection(nn.Module):
@@ -53,9 +54,7 @@ class YOLODetection(nn.Module):
         pred_conf = torch.sigmoid(prediction[..., 4])  # Conf
         pred_cls = torch.sigmoid(prediction[..., 5:])  # Cls pred.
 
-        # If grid size does not match current we compute new offsets
-        if grid_size != self.grid_size:
-            self.compute_grid_offsets(grid_size, cuda=x.is_cuda)
+        self.compute_grid_offsets(grid_size, cuda=x.is_cuda)
 
         # Add offset and scale with anchors
         pred_boxes = FloatTensor(prediction[..., :4].shape)
@@ -131,33 +130,34 @@ class YOLOv3(nn.Module):
     def __init__(self):
         super(YOLOv3, self).__init__()
         self.darknet53 = self.make_darknet53()
-        self.conv_block1 = self.make_conv_block(1024, 1024)
-        self.conv_final1 = self.make_conv(1024, 255, kernel_size=1, padding=0)
+        self.conv_block1 = self.make_conv_block(1024, 512)
+        self.conv_final1 = self.make_conv_final(512, 255)
 
-        self.upsample1 = self.make_upsample(1024, 256, scale_factor=2)
-        self.conv_block2 = self.make_conv_block(768, 512)
-        self.conv_final2 = self.make_conv(512, 255, kernel_size=1, padding=0)
+        self.upsample1 = self.make_upsample(512, 256, scale_factor=2)
+        self.conv_block2 = self.make_conv_block(768, 256)
+        self.conv_final2 = self.make_conv_final(256, 255)
 
-        self.upsample2 = self.make_upsample(512, 128, scale_factor=2)
-        self.conv_block3 = self.make_conv_block(384, 256)
-        self.conv_final3 = self.make_conv(256, 255, kernel_size=1, padding=0)
+        self.upsample2 = self.make_upsample(256, 128, scale_factor=2)
+        self.conv_block3 = self.make_conv_block(384, 128)
+        self.conv_final3 = self.make_conv_final(128, 255)
 
     def forward(self, x):
         residual_output = {}
 
         # Darknet-53 forward
-        for key, module in self.darknet53.items():
-            module_type = key.split('_')[0]
+        with torch.no_grad():
+            for key, module in self.darknet53.items():
+                module_type = key.split('_')[0]
 
-            if module_type == 'conv':
-                x = module(x)
-            elif module_type == 'residual':
-                block_iter = key.split('_')[-1]
-                for i in range(int(block_iter[0])):
-                    residual = x
-                    out = module['block_{}'.format(i + 1)](x)
-                    x = out + residual
-                residual_output[key] = x
+                if module_type == 'conv':
+                    x = module(x)
+                elif module_type == 'residual':
+                    block_iter = key.split('_')[-1]
+                    for i in range(int(block_iter[0])):
+                        residual = x
+                        out = module['block_{}'.format(i + 1)](x)
+                        x = out + residual
+                    residual_output[key] = x
 
         # Yolov3 layer forward
         conv_b1 = self.conv_block1(residual_output['residual_5_4x'])
@@ -200,14 +200,19 @@ class YOLOv3(nn.Module):
         return modules
 
     def make_conv_block(self, in_channels: int, out_channels: int):
-        half_channels = out_channels // 2
         modules = nn.Sequential(
-            self.make_conv(in_channels, half_channels, kernel_size=1, padding=0),
-            self.make_conv(half_channels, out_channels, kernel_size=3),
-            self.make_conv(out_channels, half_channels, kernel_size=1, padding=0),
-            self.make_conv(half_channels, out_channels, kernel_size=3),
-            self.make_conv(out_channels, half_channels, kernel_size=1, padding=0),
-            self.make_conv(half_channels, out_channels, kernel_size=3)
+            self.make_conv(in_channels, out_channels, kernel_size=1, padding=0),
+            self.make_conv(out_channels, in_channels, kernel_size=3),
+            self.make_conv(in_channels, out_channels, kernel_size=1, padding=0),
+            self.make_conv(out_channels, in_channels, kernel_size=3),
+            self.make_conv(in_channels, out_channels, kernel_size=1, padding=0)
+        )
+        return modules
+
+    def make_conv_final(self, in_channels: int, out_channels: int):
+        modules = nn.Sequential(
+            self.make_conv(in_channels, in_channels * 2, kernel_size=3),
+            self.make_conv(in_channels * 2, out_channels, kernel_size=1, padding=0)
         )
         return modules
 
@@ -237,3 +242,7 @@ if __name__ == '__main__':
 
     test = torch.rand([1, 3, 416, 416])
     y = model(test)
+
+    logger = utils.logger.Logger('./logs')
+    logger.add_graph(model, test)
+    logger.close()
