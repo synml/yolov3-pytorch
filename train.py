@@ -120,8 +120,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
 
         model.seen += imgs.size(0)
 
-    # Disable lr scheduler
-    # scheduler.step()
+    scheduler.step()
 
     # Evaluate the model on the validation set
     precision, recall, AP, f1, ap_class = evaluate(model,
