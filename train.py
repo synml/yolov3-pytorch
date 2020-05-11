@@ -15,7 +15,7 @@ from utils.parse_config import *
 from test import evaluate
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--epochs", type=int, default=100,
+parser.add_argument("--epochs", type=int, default=200,
                     help="number of epochs")
 parser.add_argument("--batch_size", type=int, default=16,
                     help="size of each image batch")
