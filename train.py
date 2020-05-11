@@ -39,14 +39,16 @@ print(args)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Backup previous training results
-now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
-backup_dir = os.path.join('backup', now)
-os.makedirs(backup_dir, exist_ok=True)
+if os.path.exists('checkpoints') or os.path.exists('logs'):
+    creation_time = os.listdir('logs')[0].split('.')[3]
+    creation_time = time.strftime('%y%m%d_%H%M%S', time.localtime(float(creation_time)))
+    backup_dir = os.path.join('backup', creation_time)
+    os.makedirs(backup_dir, exist_ok=True)
 
-if os.path.exists('checkpoints'):
-    shutil.move('checkpoints', backup_dir)
-if os.path.exists('logs'):
-    shutil.move('logs', backup_dir)
+    if os.path.exists('checkpoints'):
+        shutil.move('checkpoints', backup_dir)
+    if os.path.exists('logs'):
+        shutil.move('logs', backup_dir)
 
 # Make directory for saving checkpoint files
 os.makedirs("checkpoints", exist_ok=True)
