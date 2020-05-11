@@ -142,9 +142,7 @@ class YOLOLayer(nn.Module):
         pred_conf = torch.sigmoid(prediction[..., 4])  # Conf
         pred_cls = torch.sigmoid(prediction[..., 5:])  # Cls pred.
 
-        # If grid size does not match current we compute new offsets
-        if grid_size != self.grid_size:
-            self.compute_grid_offsets(grid_size, cuda=cx.is_cuda)
+        self.compute_grid_offsets(grid_size, cuda=cx.is_cuda)
 
         # Add offset and scale with anchors
         pred_boxes = FloatTensor(prediction[..., :4].shape)
