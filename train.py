@@ -37,7 +37,6 @@ args = parser.parse_args()
 print(args)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-logger = Logger("logs")
 
 # Backup previous training results
 now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
@@ -51,6 +50,9 @@ if os.path.exists('logs'):
 
 # Make directory for saving checkpoint files
 os.makedirs("checkpoints", exist_ok=True)
+
+# Tensorboard writer 객체 생성
+logger = Logger("logs")
 
 # Get data configuration
 data_config = parse_data_config(args.data_config)
