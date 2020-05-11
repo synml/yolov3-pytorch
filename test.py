@@ -6,7 +6,6 @@ import tqdm
 
 import torch
 from torch.utils.data import DataLoader
-from torch.autograd import Variable
 
 from models import *
 from utils.utils import *
@@ -23,7 +22,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, collate_fn=dataset.collate_fn
     )
 
-    Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     labels = []
     sample_metrics = []  # List of tuples (TP, confs, pred)
@@ -38,7 +37,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         targets[:, 2:] = xywh2xyxy(targets[:, 2:])
         targets[:, 2:] *= img_size
 
-        imgs = Variable(imgs.type(Tensor), requires_grad=False)
+        imgs = imgs.to(device)
 
         with torch.no_grad():
             outputs = model(imgs)
@@ -65,7 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
     parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.5, help="iou threshold for non-maximum suppression")
-    parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
+    parser.add_argument("--n_cpu", type=int, default=0, help="number of cpu threads to use during batch generation")
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     args = parser.parse_args()
     print(args)
