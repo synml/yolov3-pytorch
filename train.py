@@ -146,7 +146,8 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
                                                    conf_thres=0.5,
                                                    nms_thres=0.5,
                                                    img_size=args.img_size,
-                                                   batch_size=8)
+                                                   batch_size=8,
+                                                   num_workers=args.n_cpu)
     evaluation_metrics = [
         ("val_precision", precision.mean()),
         ("val_recall", recall.mean()),
