@@ -296,7 +296,7 @@ class YOLOv3(nn.Module):
                         ptr = self.load_conv_weights(conv_layer, weights, ptr, num_weights)
 
     # Load BN bias, weights, running mean and running variance
-    def load_bn_weights(self, bn_layer, weights, ptr: int, num_bn_biases):
+    def load_bn_weights(self, bn_layer, weights, ptr: int, num_bn_biases: int):
         # Bias
         bn_biases = torch.from_numpy(weights[ptr: ptr + num_bn_biases]).view_as(bn_layer.bias)
         bn_layer.bias.data.copy_(bn_biases)
@@ -317,7 +317,7 @@ class YOLOv3(nn.Module):
         return ptr
 
     # Load convolution weights
-    def load_conv_weights(self, conv_layer, weights, ptr: int, num_weights):
+    def load_conv_weights(self, conv_layer, weights, ptr: int, num_weights: int):
         conv_weights = torch.from_numpy(weights[ptr: ptr + num_weights])
         conv_weights = conv_weights.view_as(conv_layer.weight)
         conv_layer.weight.data.copy_(conv_weights)
