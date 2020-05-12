@@ -19,9 +19,9 @@ class YOLODetection(nn.Module):
         self.noobj_scale = 100
         self.metrics = {}
         self.img_size = img_size
-        self.grid_size = 0  # grid size
+        self.grid_size = 0
 
-    def compute_grid_offsets(self, grid_size, cuda=True):
+    def compute_grid_offsets(self, grid_size: int, cuda=True):
         self.grid_size = grid_size
         g = self.grid_size
         FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
@@ -212,7 +212,7 @@ class YOLOv3(nn.Module):
         modules['residual_5_4x'] = self.make_residual_block(in_channels=1024, num_blocks=4)
         return modules
 
-    def make_conv(self, in_channels: int, out_channels: int, kernel_size, stride=1, padding=1):
+    def make_conv(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=1):
         modules = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.BatchNorm2d(out_channels, momentum=0.9, eps=1e-5),
