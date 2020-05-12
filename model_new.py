@@ -12,14 +12,21 @@ class YOLODetection(nn.Module):
         self.anchors = anchors
         self.num_anchors = len(anchors)
         self.num_classes = num_classes
-        self.ignore_thres = 0.5
+        self.img_size = img_size
         self.mse_loss = nn.MSELoss()
         self.bce_loss = nn.BCELoss()
+        self.ignore_thres = 0.5
         self.obj_scale = 1
         self.noobj_scale = 100
         self.metrics = {}
-        self.img_size = img_size
+
         self.grid_size = 0
+        self.stride = 0
+        self.grid_x = 0
+        self.grid_y = 0
+        self.scaled_anchors = 0
+        self.anchor_w = 0
+        self.anchor_h = 0
 
     def compute_grid_offsets(self, grid_size: int, cuda=True):
         self.grid_size = grid_size
