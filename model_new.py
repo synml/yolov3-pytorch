@@ -287,13 +287,21 @@ class YOLOv3(nn.Module):
 
         # Load YOLOv3 weights
         if weights_path.find('yolov3.weights') != -1:
-            for module in self.conv_block1:
-                ptr = self.load_bn_weights(module[1], weights, ptr)
-                ptr = self.load_conv_weights(module[0], weights, ptr)
+            module_list = [self.conv_block1, self.conv_final1, self.upsample1[0],
+                           self.conv_block2, self.conv_final2, self.upsample2[0],
+                           self.conv_block3, self.conv_final3]
 
-            for module in self.conv_final1:
-                ptr = self.load_bn_weights(module[1], weights, ptr)
-                ptr = self.load_conv_weights(module[0], weights, ptr)
+            for i in range(0, 8, 3):
+                for module in module_list[i]:
+                    ptr = self.load_bn_weights(module[1], weights, ptr)
+                    ptr = self.load_conv_weights(module[0], weights, ptr)
+
+                for module in module_list[i + 1]:
+                    ptr = self.load_bn_weights(module[1], weights, ptr)
+                    ptr = self.load_conv_weights(module[0], weights, ptr)
+
+                ptr = self.load_bn_weights(module_list[i + 2][1], weights, ptr)
+                ptr = self.load_conv_weights(module_list[i + 2][0], weights, ptr)
 
     # Load BN bias, weights, running mean and running variance
     def load_bn_weights(self, bn_layer, weights, ptr: int):
