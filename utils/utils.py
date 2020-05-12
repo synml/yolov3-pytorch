@@ -16,7 +16,7 @@ def load_classes(path):
     return names
 
 
-def weights_init_normal(m):
+def init_weights_normal(m):
     classname = m.__class__.__name__
     if classname.find("Conv") != -1:
         torch.nn.init.kaiming_normal_(m.weight.data, 0.1)
