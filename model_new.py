@@ -270,33 +270,35 @@ class YOLOv3(nn.Module):
             seen = header[3]  # number of images seen during training
             weights = np.fromfile(f, dtype=np.float32)  # The rest are weights
 
-        # Start loading
         ptr = 0
+        # Load Darknet-53 weights
         for key, module in self.darknet53.items():
             module_type = key.split('_')[0]
 
             if module_type == 'conv':
-                conv_layer = module[0]
-                num_weights = conv_layer.weight.numel()
-                bn_layer = module[1]
-                num_bn_biases = bn_layer.bias.numel()
-
-                ptr = self.load_bn_weights(bn_layer, weights, ptr, num_bn_biases)
-                ptr = self.load_conv_weights(conv_layer, weights, ptr, num_weights)
+                ptr = self.load_bn_weights(module[1], weights, ptr)
+                ptr = self.load_conv_weights(module[0], weights, ptr)
 
             elif module_type == 'residual':
                 for name, block in module.items():
                     for i in range(2):
-                        conv_layer = block[i][0]
-                        num_weights = conv_layer.weight.numel()
-                        bn_layer = block[i][1]
-                        num_bn_biases = bn_layer.bias.numel()
+                        ptr = self.load_bn_weights(block[i][1], weights, ptr)
+                        ptr = self.load_conv_weights(block[i][0], weights, ptr)
 
-                        ptr = self.load_bn_weights(bn_layer, weights, ptr, num_bn_biases)
-                        ptr = self.load_conv_weights(conv_layer, weights, ptr, num_weights)
+        # Load YOLOv3 weights
+        if weights_path.find('yolov3.weights') != -1:
+            for module in self.conv_block1:
+                ptr = self.load_bn_weights(module[1], weights, ptr)
+                ptr = self.load_conv_weights(module[0], weights, ptr)
+
+            for module in self.conv_final1:
+                ptr = self.load_bn_weights(module[1], weights, ptr)
+                ptr = self.load_conv_weights(module[0], weights, ptr)
 
     # Load BN bias, weights, running mean and running variance
-    def load_bn_weights(self, bn_layer, weights, ptr: int, num_bn_biases: int):
+    def load_bn_weights(self, bn_layer, weights, ptr: int):
+        num_bn_biases = bn_layer.bias.numel()
+
         # Bias
         bn_biases = torch.from_numpy(weights[ptr: ptr + num_bn_biases]).view_as(bn_layer.bias)
         bn_layer.bias.data.copy_(bn_biases)
@@ -317,7 +319,9 @@ class YOLOv3(nn.Module):
         return ptr
 
     # Load convolution weights
-    def load_conv_weights(self, conv_layer, weights, ptr: int, num_weights: int):
+    def load_conv_weights(self, conv_layer, weights, ptr: int):
+        num_weights = conv_layer.weight.numel()
+
         conv_weights = torch.from_numpy(weights[ptr: ptr + num_weights])
         conv_weights = conv_weights.view_as(conv_layer.weight)
         conv_layer.weight.data.copy_(conv_weights)
