@@ -129,7 +129,6 @@ class YOLODetection(nn.Module):
 class YOLOv3(nn.Module):
     def __init__(self, img_size: int, num_classes: int):
         super(YOLOv3, self).__init__()
-        self.img_size = img_size
         self.seen = 0
         self.header_info = np.array([0, 0, 0, self.seen, 0], dtype=np.int32)
         final_out_channel = 3 * (4 + 1 + num_classes)
@@ -150,9 +149,9 @@ class YOLOv3(nn.Module):
         anchors = {'scale1': [(116, 90), (156, 198), (373, 326)],
                    'scale2': [(30, 61), (62, 45), (59, 119)],
                    'scale3': [(10, 13), (16, 30), (33, 23)]}
-        self.yolo_layer1 = YOLODetection(anchors['scale1'], num_classes, img_size)
-        self.yolo_layer2 = YOLODetection(anchors['scale2'], num_classes, img_size)
-        self.yolo_layer3 = YOLODetection(anchors['scale3'], num_classes, img_size)
+        self.yolo_layer1 = YOLODetection(anchors['scale1'], img_size, num_classes)
+        self.yolo_layer2 = YOLODetection(anchors['scale2'], img_size, num_classes)
+        self.yolo_layer3 = YOLODetection(anchors['scale3'], img_size, num_classes)
 
     def forward(self, x, targets=None):
         loss = 0
@@ -176,21 +175,21 @@ class YOLOv3(nn.Module):
         # Yolov3 layer forward
         conv_b1 = self.conv_block1(residual_output['residual_5_4x'])
         scale1 = self.conv_final1(conv_b1)
-        yolo_output1, layer_loss = self.yolo_layer1(scale1, targets, self.img_size)
+        yolo_output1, layer_loss = self.yolo_layer1(scale1, targets)
         loss += layer_loss
 
         scale2 = self.upsample1(conv_b1)
         scale2 = torch.cat((scale2, residual_output['residual_4_8x']), dim=1)
         conv_b2 = self.conv_block2(scale2)
         scale2 = self.conv_final2(conv_b2)
-        yolo_output2, layer_loss = self.yolo_layer2(scale2, targets, self.img_size)
+        yolo_output2, layer_loss = self.yolo_layer2(scale2, targets)
         loss += layer_loss
 
         scale3 = self.upsample2(conv_b2)
         scale3 = torch.cat((scale3, residual_output['residual_3_8x']), dim=1)
         conv_b3 = self.conv_block3(scale3)
         scale3 = self.conv_final3(conv_b3)
-        yolo_output3, layer_loss = self.yolo_layer3(scale3, targets, self.img_size)
+        yolo_output3, layer_loss = self.yolo_layer3(scale3, targets)
         loss += layer_loss
 
         yolo_outputs = [yolo_output1, yolo_output2, yolo_output3]
