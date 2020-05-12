@@ -7,7 +7,7 @@ import utils.logger
 
 
 class YOLODetection(nn.Module):
-    def __init__(self, anchors, num_classes: int):
+    def __init__(self, anchors, img_size: int, num_classes: int):
         super(YOLODetection, self).__init__()
         self.anchors = anchors
         self.num_anchors = len(anchors)
@@ -18,13 +18,14 @@ class YOLODetection(nn.Module):
         self.obj_scale = 1
         self.noobj_scale = 100
         self.metrics = {}
+        self.img_size = img_size
         self.grid_size = 0  # grid size
 
-    def compute_grid_offsets(self, img_dim, grid_size, cuda=True):
+    def compute_grid_offsets(self, grid_size, cuda=True):
         self.grid_size = grid_size
         g = self.grid_size
         FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
-        self.stride = img_dim / self.grid_size
+        self.stride = self.img_size / self.grid_size
         # Calculate offsets for each grid
         self.grid_x = torch.arange(g).repeat(g, 1).view([1, 1, g, g]).type(FloatTensor)
         self.grid_y = torch.arange(g).repeat(g, 1).t().view([1, 1, g, g]).type(FloatTensor)
@@ -32,7 +33,7 @@ class YOLODetection(nn.Module):
         self.anchor_w = self.scaled_anchors[:, 0:1].view((1, self.num_anchors, 1, 1))
         self.anchor_h = self.scaled_anchors[:, 1:2].view((1, self.num_anchors, 1, 1))
 
-    def forward(self, x, targets, img_dim):
+    def forward(self, x, targets):
 
         # Tensors for cuda support
         FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
@@ -53,7 +54,7 @@ class YOLODetection(nn.Module):
         pred_conf = torch.sigmoid(prediction[..., 4])  # Conf
         pred_cls = torch.sigmoid(prediction[..., 5:])  # Cls pred.
 
-        self.compute_grid_offsets(img_dim, grid_size, cuda=x.is_cuda)
+        self.compute_grid_offsets(grid_size, cuda=x.is_cuda)
 
         # Add offset and scale with anchors
         pred_boxes = FloatTensor(prediction[..., :4].shape)
@@ -126,8 +127,9 @@ class YOLODetection(nn.Module):
 
 
 class YOLOv3(nn.Module):
-    def __init__(self, num_classes: int):
+    def __init__(self, img_size: int, num_classes: int):
         super(YOLOv3, self).__init__()
+        self.img_size = img_size
         self.seen = 0
         self.header_info = np.array([0, 0, 0, self.seen, 0], dtype=np.int32)
         final_out_channel = 3 * (4 + 1 + num_classes)
@@ -148,12 +150,11 @@ class YOLOv3(nn.Module):
         anchors = {'scale1': [(116, 90), (156, 198), (373, 326)],
                    'scale2': [(30, 61), (62, 45), (59, 119)],
                    'scale3': [(10, 13), (16, 30), (33, 23)]}
-        self.yolo_layer1 = YOLODetection(anchors['scale1'], num_classes)
-        self.yolo_layer2 = YOLODetection(anchors['scale2'], num_classes)
-        self.yolo_layer3 = YOLODetection(anchors['scale3'], num_classes)
+        self.yolo_layer1 = YOLODetection(anchors['scale1'], num_classes, img_size)
+        self.yolo_layer2 = YOLODetection(anchors['scale2'], num_classes, img_size)
+        self.yolo_layer3 = YOLODetection(anchors['scale3'], num_classes, img_size)
 
     def forward(self, x, targets=None):
-        img_size = x.shape[2]
         loss = 0
         residual_output = {}
 
@@ -165,8 +166,8 @@ class YOLOv3(nn.Module):
                 if module_type == 'conv':
                     x = module(x)
                 elif module_type == 'residual':
-                    block_iter = key.split('_')[-1]
-                    for i in range(int(block_iter[0])):
+                    block_iter = int(key.split('_')[-1][0])
+                    for i in range(block_iter):
                         residual = x
                         out = module['block_{}'.format(i + 1)](x)
                         x = out + residual
@@ -175,21 +176,21 @@ class YOLOv3(nn.Module):
         # Yolov3 layer forward
         conv_b1 = self.conv_block1(residual_output['residual_5_4x'])
         scale1 = self.conv_final1(conv_b1)
-        yolo_output1, layer_loss = self.yolo_layer1(scale1, targets, img_size)
+        yolo_output1, layer_loss = self.yolo_layer1(scale1, targets, self.img_size)
         loss += layer_loss
 
         scale2 = self.upsample1(conv_b1)
         scale2 = torch.cat((scale2, residual_output['residual_4_8x']), dim=1)
         conv_b2 = self.conv_block2(scale2)
         scale2 = self.conv_final2(conv_b2)
-        yolo_output2, layer_loss = self.yolo_layer2(scale2, targets, img_size)
+        yolo_output2, layer_loss = self.yolo_layer2(scale2, targets, self.img_size)
         loss += layer_loss
 
         scale3 = self.upsample2(conv_b2)
         scale3 = torch.cat((scale3, residual_output['residual_3_8x']), dim=1)
         conv_b3 = self.conv_block3(scale3)
         scale3 = self.conv_final3(conv_b3)
-        yolo_output3, layer_loss = self.yolo_layer3(scale3, targets, img_size)
+        yolo_output3, layer_loss = self.yolo_layer3(scale3, targets, self.img_size)
         loss += layer_loss
 
         yolo_outputs = [yolo_output1, yolo_output2, yolo_output3]
@@ -258,7 +259,7 @@ class YOLOv3(nn.Module):
 
 
 if __name__ == '__main__':
-    model = YOLOv3(num_classes=80)
+    model = YOLOv3(img_size=416, num_classes=80)
     print(model)
 
     test = torch.rand([1, 3, 416, 416])
