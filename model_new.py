@@ -136,26 +136,24 @@ class YOLODetection(nn.Module):
 class YOLOv3(nn.Module):
     def __init__(self, img_size: int, num_classes: int):
         super(YOLOv3, self).__init__()
+        anchors = {'scale1': [(116, 90), (156, 198), (373, 326)],
+                   'scale2': [(30, 61), (62, 45), (59, 119)],
+                   'scale3': [(10, 13), (16, 30), (33, 23)]}
         final_out_channel = 3 * (4 + 1 + num_classes)
 
         self.darknet53 = self.make_darknet53()
         self.conv_block1 = self.make_conv_block(1024, 512)
         self.conv_final1 = self.make_conv_final(512, final_out_channel)
+        self.yolo_layer1 = YOLODetection(anchors['scale1'], img_size, num_classes)
 
         self.upsample1 = self.make_upsample(512, 256, scale_factor=2)
         self.conv_block2 = self.make_conv_block(768, 256)
         self.conv_final2 = self.make_conv_final(256, final_out_channel)
+        self.yolo_layer2 = YOLODetection(anchors['scale2'], img_size, num_classes)
 
         self.upsample2 = self.make_upsample(256, 128, scale_factor=2)
         self.conv_block3 = self.make_conv_block(384, 128)
         self.conv_final3 = self.make_conv_final(128, final_out_channel)
-
-        # YOLO layer
-        anchors = {'scale1': [(116, 90), (156, 198), (373, 326)],
-                   'scale2': [(30, 61), (62, 45), (59, 119)],
-                   'scale3': [(10, 13), (16, 30), (33, 23)]}
-        self.yolo_layer1 = YOLODetection(anchors['scale1'], img_size, num_classes)
-        self.yolo_layer2 = YOLODetection(anchors['scale2'], img_size, num_classes)
         self.yolo_layer3 = YOLODetection(anchors['scale3'], img_size, num_classes)
 
     def forward(self, x, targets=None):
@@ -227,19 +225,20 @@ class YOLOv3(nn.Module):
         return modules
 
     def make_conv_block(self, in_channels: int, out_channels: int):
+        double_channels = out_channels * 2
         modules = nn.Sequential(
             self.make_conv(in_channels, out_channels, kernel_size=1, padding=0),
-            self.make_conv(out_channels, in_channels, kernel_size=3),
-            self.make_conv(in_channels, out_channels, kernel_size=1, padding=0),
-            self.make_conv(out_channels, in_channels, kernel_size=3),
-            self.make_conv(in_channels, out_channels, kernel_size=1, padding=0)
+            self.make_conv(out_channels, double_channels, kernel_size=3),
+            self.make_conv(double_channels, out_channels, kernel_size=1, padding=0),
+            self.make_conv(out_channels, double_channels, kernel_size=3),
+            self.make_conv(double_channels, out_channels, kernel_size=1, padding=0)
         )
         return modules
 
     def make_conv_final(self, in_channels: int, out_channels: int):
         modules = nn.Sequential(
             self.make_conv(in_channels, in_channels * 2, kernel_size=3),
-            self.make_conv(in_channels * 2, out_channels, kernel_size=1, padding=0)
+            nn.Conv2d(in_channels * 2, out_channels, kernel_size=1, stride=1, padding=0, bias=True)
         )
         return modules
 
@@ -291,17 +290,38 @@ class YOLOv3(nn.Module):
                            self.conv_block2, self.conv_final2, self.upsample2[0],
                            self.conv_block3, self.conv_final3]
 
-            for i in range(0, 8, 3):
-                for module in module_list[i]:
-                    ptr = self.load_bn_weights(module[1], weights, ptr)
-                    ptr = self.load_conv_weights(module[0], weights, ptr)
+            for module in self.conv_block1:
+                ptr = self.load_bn_weights(module[1], weights, ptr)
+                ptr = self.load_conv_weights(module[0], weights, ptr)
 
-                for module in module_list[i + 1]:
-                    ptr = self.load_bn_weights(module[1], weights, ptr)
-                    ptr = self.load_conv_weights(module[0], weights, ptr)
+            ptr = self.load_bn_weights(self.conv_final1[0][1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final1[0][0], weights, ptr)
+            ptr = self.load_conv_bias(self.conv_final1[1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final1[1], weights, ptr)
 
-                ptr = self.load_bn_weights(module_list[i + 2][1], weights, ptr)
-                ptr = self.load_conv_weights(module_list[i + 2][0], weights, ptr)
+            ptr = self.load_bn_weights(self.upsample1[0][1], weights, ptr)
+            ptr = self.load_conv_weights(self.upsample1[0][0], weights, ptr)
+
+            for module in self.conv_block2:
+                ptr = self.load_bn_weights(module[1], weights, ptr)
+                ptr = self.load_conv_weights(module[0], weights, ptr)
+
+            ptr = self.load_bn_weights(self.conv_final2[0][1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final2[0][0], weights, ptr)
+            ptr = self.load_conv_bias(self.conv_final2[1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final2[1], weights, ptr)
+
+            ptr = self.load_bn_weights(self.upsample2[0][1], weights, ptr)
+            ptr = self.load_conv_weights(self.upsample2[0][0], weights, ptr)
+
+            for module in self.conv_block3:
+                ptr = self.load_bn_weights(module[1], weights, ptr)
+                ptr = self.load_conv_weights(module[0], weights, ptr)
+
+            ptr = self.load_bn_weights(self.conv_final3[0][1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final3[0][0], weights, ptr)
+            ptr = self.load_conv_bias(self.conv_final3[1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final3[1], weights, ptr)
 
     # Load BN bias, weights, running mean and running variance
     def load_bn_weights(self, bn_layer, weights, ptr: int):
@@ -323,6 +343,16 @@ class YOLOv3(nn.Module):
         bn_running_var = torch.from_numpy(weights[ptr: ptr + num_bn_biases]).view_as(bn_layer.running_var)
         bn_layer.running_var.data.copy_(bn_running_var)
         ptr += num_bn_biases
+
+        return ptr
+
+    # Load convolution bias
+    def load_conv_bias(self, conv_layer, weights, ptr: int):
+        num_biases = conv_layer.bias.numel()
+
+        conv_biases = torch.from_numpy(weights[ptr: ptr + num_biases]).view_as(conv_layer.bias)
+        conv_layer.bias.data.copy_(conv_biases)
+        ptr += num_biases
 
         return ptr
 
