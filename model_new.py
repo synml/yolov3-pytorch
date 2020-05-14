@@ -286,10 +286,6 @@ class YOLOv3(nn.Module):
 
         # Load YOLOv3 weights
         if weights_path.find('yolov3.weights') != -1:
-            module_list = [self.conv_block1, self.conv_final1, self.upsample1[0],
-                           self.conv_block2, self.conv_final2, self.upsample2[0],
-                           self.conv_block3, self.conv_final3]
-
             for module in self.conv_block1:
                 ptr = self.load_bn_weights(module[1], weights, ptr)
                 ptr = self.load_conv_weights(module[0], weights, ptr)
