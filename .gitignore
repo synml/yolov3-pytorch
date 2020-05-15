@@ -4,8 +4,7 @@ backup/
 checkpoints/
 logs/
 output/
-weights/darknet53.conv.74
-*.weights
+weights/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
