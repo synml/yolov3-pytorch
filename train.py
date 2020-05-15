@@ -18,8 +18,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=200, help="number of epochs")
 parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")
 parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
-parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
-parser.add_argument("--data_config", type=str, default="config/coco.data", help="path to data config file")
+parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
+parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weight", type=str, default='weights/darknet53.conv.74',
                     help="if specified starts from checkpoint model")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
@@ -138,7 +138,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
                                                    conf_thres=0.5,
                                                    nms_thres=0.5,
                                                    img_size=args.img_size,
-                                                   batch_size=8,
+                                                   batch_size=args.batch_size,
                                                    num_workers=args.n_cpu)
     evaluation_metrics = [
         ("val_precision", precision.mean()),

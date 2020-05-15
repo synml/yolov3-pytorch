@@ -15,11 +15,11 @@ from utils.datasets import *
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--image_folder", type=str, default="../../data/coco/images/val2017", help="path to image folder")
-parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
-parser.add_argument("--weights_path", type=str, default="weights/yolov3.weights", help="path to weights file")
-parser.add_argument("--class_path", type=str, default="../../data/coco/coco_classes.txt", help="path to class label file")
-parser.add_argument("--conf_thres", type=float, default=0.1, help="object confidence threshold")
+parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
+parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
+parser.add_argument("--weights_path", type=str, default="", help="path to weights file")
+parser.add_argument("--class_path", type=str, default="../../data/voc/voc_classes.txt", help="path to class label file")
+parser.add_argument("--conf_thres", type=float, default=0.5, help="object confidence threshold")
 parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
 parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
