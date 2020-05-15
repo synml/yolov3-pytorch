@@ -104,11 +104,10 @@ if __name__ == "__main__":
     print('mAP: {:.02f}'.format(AP.mean() * 100))
 
     # Saving AP and mAP to csv file.
-    if not os.path.exists('./output'):
-        os.mkdir('./output')
+    os.makedirs('csv', exist_ok=True)
 
     now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
-    with open('./output/test{}.csv'.format(now), mode='w') as f:
+    with open('csv/test{}.csv'.format(now), mode='w') as f:
         writer = csv.writer(f, delimiter=',')
 
         writer.writerow(['Class Number', 'Class Name', 'AP'])

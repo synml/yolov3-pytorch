@@ -3,7 +3,7 @@
 backup/
 checkpoints/
 logs/
-output/
+csv/
 weights/
 
 # Byte-compiled / optimized / DLL files
