@@ -199,25 +199,29 @@ class YOLOv3(nn.Module):
     def make_darknet53(self):
         modules = nn.ModuleDict()
 
-        modules['conv_1'] = self.make_conv(3, 32, kernel_size=3)
-        modules['conv_2'] = self.make_conv(32, 64, kernel_size=3, stride=2)
+        modules['conv_1'] = self.make_conv(3, 32, kernel_size=3, requires_grad=False)
+        modules['conv_2'] = self.make_conv(32, 64, kernel_size=3, stride=2, requires_grad=False)
         modules['residual_1_1x'] = self.make_residual_block(in_channels=64, num_blocks=1, block_num=1)
-        modules['conv_3'] = self.make_conv(64, 128, kernel_size=3, stride=2)
+        modules['conv_3'] = self.make_conv(64, 128, kernel_size=3, stride=2, requires_grad=False)
         modules['residual_2_2x'] = self.make_residual_block(in_channels=128, num_blocks=2, block_num=2)
-        modules['conv_4'] = self.make_conv(128, 256, kernel_size=3, stride=2)
+        modules['conv_4'] = self.make_conv(128, 256, kernel_size=3, stride=2, requires_grad=False)
         modules['residual_3_8x'] = self.make_residual_block(in_channels=256, num_blocks=8, block_num=3)
-        modules['conv_5'] = self.make_conv(256, 512, kernel_size=3, stride=2)
+        modules['conv_5'] = self.make_conv(256, 512, kernel_size=3, stride=2, requires_grad=False)
         modules['residual_4_8x'] = self.make_residual_block(in_channels=512, num_blocks=8, block_num=4)
-        modules['conv_6'] = self.make_conv(512, 1024, kernel_size=3, stride=2)
+        modules['conv_6'] = self.make_conv(512, 1024, kernel_size=3, stride=2, requires_grad=False)
         modules['residual_5_4x'] = self.make_residual_block(in_channels=1024, num_blocks=4, block_num=5)
         return modules
 
-    def make_conv(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=1):
-        modules = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
-            nn.BatchNorm2d(out_channels, momentum=0.9, eps=1e-5),
-            nn.LeakyReLU(negative_slope=0.1)
-        )
+    def make_conv(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=1, requires_grad=True):
+        module1 = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False)
+        module2 = nn.BatchNorm2d(out_channels, momentum=0.9, eps=1e-5)
+        if not requires_grad:
+            for param in module1.parameters():
+                param.requires_grad_(False)
+            for param in module2.parameters():
+                param.requires_grad_(False)
+
+        modules = nn.Sequential(module1, module2, nn.LeakyReLU(negative_slope=0.1))
         return modules
 
     def make_conv_block(self, in_channels: int, out_channels: int):
@@ -241,8 +245,8 @@ class YOLOv3(nn.Module):
     def make_residual_block(self, in_channels: int, num_blocks: int, block_num: int):
         half_channels = in_channels // 2
         block = nn.Sequential(
-            self.make_conv(in_channels, half_channels, kernel_size=1, padding=0),
-            self.make_conv(half_channels, in_channels, kernel_size=3)
+            self.make_conv(in_channels, half_channels, kernel_size=1, padding=0, requires_grad=False),
+            self.make_conv(half_channels, in_channels, kernel_size=3, requires_grad=False)
         )
 
         modules = nn.ModuleDict()
