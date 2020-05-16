@@ -60,7 +60,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")
     parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
     parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
-    parser.add_argument("--weights_path", type=str, default="weights/yolov3_ckpt_99.pth", help="path to weights file")
+    parser.add_argument("--weights_path", type=str, default="", help="path to weights file")
     parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
     parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.5, help="iou threshold for non-maximum suppression")
