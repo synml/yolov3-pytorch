@@ -111,7 +111,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         loss.backward()
 
         # Accumulates gradient before each step
-        if step % args.gradient_accumulations:
+        if step % args.gradient_accumulations == 0:
             optimizer.step()
             optimizer.zero_grad()
 
