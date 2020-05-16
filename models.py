@@ -24,19 +24,22 @@ def create_modules(module_defs, img_size: int):
             filters = int(module_def["filters"])
             kernel_size = int(module_def["size"])
             pad = (kernel_size - 1) // 2
-            modules.add_module(
-                f"conv_{module_i}",
-                nn.Conv2d(
-                    in_channels=output_filters[-1],
-                    out_channels=filters,
-                    kernel_size=kernel_size,
-                    stride=int(module_def["stride"]),
-                    padding=pad,
-                    bias=not bn,
-                ),
-            )
+            module = nn.Conv2d(in_channels=output_filters[-1],
+                               out_channels=filters,
+                               kernel_size=kernel_size,
+                               stride=int(module_def["stride"]),
+                               padding=pad,
+                               bias=not bn)
+            if module_i <= 74:
+                for param in module.parameters():
+                    param.requires_grad_(False)
+            modules.add_module(f"conv_{module_i}", module)
             if bn:
-                modules.add_module(f"batch_norm_{module_i}", nn.BatchNorm2d(filters, momentum=0.9, eps=1e-5))
+                module = nn.BatchNorm2d(filters, momentum=0.9, eps=1e-5)
+                if module_i <= 74:
+                    for param in module.parameters():
+                        param.requires_grad_(False)
+                modules.add_module(f"batch_norm_{module_i}", module)
             if module_def["activation"] == "leaky":
                 modules.add_module(f"leaky_{module_i}", nn.LeakyReLU(0.1))
 
@@ -227,20 +230,12 @@ class Darknet(nn.Module):
         layer_outputs, yolo_outputs = [], []
         for i, (module_def, module) in enumerate(zip(self.module_defs, self.module_list)):
             if module_def["type"] in ["convolutional", "upsample", "maxpool"]:
-                if i <= 74:
-                    with torch.no_grad():
-                        x = module(x)
-                else:
-                    x = module(x)
+                x = module(x)
             elif module_def["type"] == "route":
                 cat = [layer_outputs[int(layer_i)] for layer_i in module_def["layers"].split(",")]
                 x = torch.cat(cat, 1)
             elif module_def["type"] == "shortcut":
-                if i <= 74:
-                    with torch.no_grad():
-                        layer_i = int(module_def["from"])
-                        x = layer_outputs[-1] + layer_outputs[layer_i]
-                else:
+                with torch.no_grad():
                     layer_i = int(module_def["from"])
                     x = layer_outputs[-1] + layer_outputs[layer_i]
             elif module_def["type"] == "yolo":
