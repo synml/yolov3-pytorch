@@ -23,7 +23,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, collate_fn=dataset.collate_fn
     )
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
     labels = []
     sample_metrics = []  # List of tuples (TP, confs, pred)
@@ -38,7 +38,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         targets[:, 2:] = xywh2xyxy(targets[:, 2:])
         targets[:, 2:] *= img_size
 
-        imgs = imgs.to(device)
+        imgs = torch.autograd.Variable(imgs.type(Tensor), requires_grad=False)
 
         with torch.no_grad():
             outputs = model(imgs)
