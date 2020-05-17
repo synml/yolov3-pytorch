@@ -166,11 +166,10 @@ class YOLOv3(nn.Module):
                 if module_type == 'conv':
                     x = module(x)
                 elif module_type == 'residual':
-                    block_num = key.split('_')[1]
                     block_iter = int(key.split('_')[-1][0])
                     for i in range(block_iter):
                         residual = x
-                        out = module['residual_{}_{}'.format(block_num, i + 1)](x)
+                        out = module[i](x)
                         x = out + residual
                     residual_output[key] = x
 
@@ -203,15 +202,15 @@ class YOLOv3(nn.Module):
 
         modules['conv_1'] = self.make_conv(3, 32, kernel_size=3, requires_grad=False)
         modules['conv_2'] = self.make_conv(32, 64, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_1_1x'] = self.make_residual_block(in_channels=64, num_blocks=1, block_num=1)
+        modules['residual_1_1x'] = self.make_residual_block(in_channels=64, num_blocks=1)
         modules['conv_3'] = self.make_conv(64, 128, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_2_2x'] = self.make_residual_block(in_channels=128, num_blocks=2, block_num=2)
+        modules['residual_2_2x'] = self.make_residual_block(in_channels=128, num_blocks=2)
         modules['conv_4'] = self.make_conv(128, 256, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_3_8x'] = self.make_residual_block(in_channels=256, num_blocks=8, block_num=3)
+        modules['residual_3_8x'] = self.make_residual_block(in_channels=256, num_blocks=8)
         modules['conv_5'] = self.make_conv(256, 512, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_4_8x'] = self.make_residual_block(in_channels=512, num_blocks=8, block_num=4)
+        modules['residual_4_8x'] = self.make_residual_block(in_channels=512, num_blocks=8)
         modules['conv_6'] = self.make_conv(512, 1024, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_5_4x'] = self.make_residual_block(in_channels=1024, num_blocks=4, block_num=5)
+        modules['residual_5_4x'] = self.make_residual_block(in_channels=1024, num_blocks=4)
         return modules
 
     def make_conv(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=1, requires_grad=True):
@@ -244,16 +243,16 @@ class YOLOv3(nn.Module):
         )
         return modules
 
-    def make_residual_block(self, in_channels: int, num_blocks: int, block_num: int):
+    def make_residual_block(self, in_channels: int, num_blocks: int):
         half_channels = in_channels // 2
         block = nn.Sequential(
             self.make_conv(in_channels, half_channels, kernel_size=1, padding=0, requires_grad=False),
             self.make_conv(half_channels, in_channels, kernel_size=3, requires_grad=False)
         )
 
-        modules = nn.ModuleDict()
+        modules = nn.ModuleList()
         for i in range(num_blocks):
-            modules['residual_{}_{}'.format(block_num, i + 1)] = block
+            modules.append(block)
         return modules
 
     def make_upsample(self, in_channels: int, out_channels: int, scale_factor: int):
@@ -281,10 +280,11 @@ class YOLOv3(nn.Module):
                 ptr = self.load_conv_weights(module[0], weights, ptr)
 
             elif module_type == 'residual':
-                for name, block in module.items():
-                    for i in range(2):
-                        ptr = self.load_bn_weights(block[i][1], weights, ptr)
-                        ptr = self.load_conv_weights(block[i][0], weights, ptr)
+                block_iter = int(key.split('_')[-1][0])
+                for i in range(block_iter):
+                    for k in range(2):
+                        ptr = self.load_bn_weights(module[i][k][1], weights, ptr)
+                        ptr = self.load_conv_weights(module[i][k][0], weights, ptr)
 
         # Load YOLOv3 weights
         if weights_path.find('yolov3.weights') != -1:
