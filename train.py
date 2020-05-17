@@ -12,6 +12,7 @@ from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
 from test import evaluate
+from model_new import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=200, help="number of epochs")
