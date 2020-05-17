@@ -17,7 +17,8 @@ from utils.datasets import *
 parser = argparse.ArgumentParser()
 parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
 parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
-parser.add_argument("--weights_path", type=str, default="", help="path to weights file")
+parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
+                    help="path to pretrained weights file")
 parser.add_argument("--class_path", type=str, default="../../data/voc/voc_classes.txt", help="path to class label file")
 parser.add_argument("--conf_thres", type=float, default=0.5, help="object confidence threshold")
 parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
@@ -33,12 +34,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Set up model
 model = Darknet(args.model_def, img_size=args.img_size).to(device)
 
-if args.weights_path.endswith(".weights"):
-    # Load darknet weights
-    model.load_darknet_weights(args.weights_path)
+if args.pretrained_weights.endswith('.pth'):
+    model.load_state_dict(torch.load(args.pretrained_weights))
 else:
-    # Load checkpoint weights
-    model.load_state_dict(torch.load(args.weights_path))
+    model.load_darknet_weights(args.pretrained_weights)
 
 model.eval()  # Set in evaluation mode
 
