@@ -100,8 +100,6 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         tensorboard_log += [("loss", loss.item())]
         logger.list_of_scalars_summary(tensorboard_log, step)
 
-        model.seen += imgs.size(0)
-
     scheduler.step()
 
     # Evaluate the model on the validation set
