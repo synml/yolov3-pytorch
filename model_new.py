@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-import utils.utils as utils
+from utils.utils import build_targets, to_cpu
 import utils.logger
 
 
@@ -78,7 +78,7 @@ class YOLODetection(nn.Module):
         if targets is None:
             return output, 0
         else:
-            iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf = utils.build_targets(
+            iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf = build_targets(
                 pred_boxes=pred_boxes,
                 pred_cls=pred_cls,
                 target=targets,
@@ -110,19 +110,19 @@ class YOLODetection(nn.Module):
             recall75 = torch.sum(iou75 * detected_mask) / (obj_mask.sum() + 1e-16)
 
             self.metrics = {
-                "loss": utils.to_cpu(total_loss).item(),
-                "x": utils.to_cpu(loss_x).item(),
-                "y": utils.to_cpu(loss_y).item(),
-                "w": utils.to_cpu(loss_w).item(),
-                "h": utils.to_cpu(loss_h).item(),
-                "conf": utils.to_cpu(loss_conf).item(),
-                "cls": utils.to_cpu(loss_cls).item(),
-                "cls_acc": utils.to_cpu(cls_acc).item(),
-                "recall50": utils.to_cpu(recall50).item(),
-                "recall75": utils.to_cpu(recall75).item(),
-                "precision": utils.to_cpu(precision).item(),
-                "conf_obj": utils.to_cpu(conf_obj).item(),
-                "conf_noobj": utils.to_cpu(conf_noobj).item(),
+                "loss": to_cpu(total_loss).item(),
+                "x": to_cpu(loss_x).item(),
+                "y": to_cpu(loss_y).item(),
+                "w": to_cpu(loss_w).item(),
+                "h": to_cpu(loss_h).item(),
+                "conf": to_cpu(loss_conf).item(),
+                "cls": to_cpu(loss_cls).item(),
+                "cls_acc": to_cpu(cls_acc).item(),
+                "recall50": to_cpu(recall50).item(),
+                "recall75": to_cpu(recall75).item(),
+                "precision": to_cpu(precision).item(),
+                "conf_obj": to_cpu(conf_obj).item(),
+                "conf_noobj": to_cpu(conf_noobj).item(),
                 "grid_size": grid_size,
             }
 
@@ -135,7 +135,7 @@ class YOLOv3(nn.Module):
         anchors = {'scale1': [(116, 90), (156, 198), (373, 326)],
                    'scale2': [(30, 61), (62, 45), (59, 119)],
                    'scale3': [(10, 13), (16, 30), (33, 23)]}
-        final_out_channel = 3 * (4 + 1 + int(num_classes))
+        final_out_channel = 3 * (4 + 1 + num_classes)
 
         self.darknet53 = self.make_darknet53()
         self.conv_block1 = self.make_conv_block(1024, 512)
@@ -151,6 +151,8 @@ class YOLOv3(nn.Module):
         self.conv_block3 = self.make_conv_block(384, 128)
         self.conv_final3 = self.make_conv_final(128, final_out_channel)
         self.yolo_layer3 = YOLODetection(anchors['scale3'], img_size, num_classes)
+
+        self.yolo_layers = [self.yolo_layer1, self.yolo_layer2, self.yolo_layer3]
 
     def forward(self, x, targets=None):
         loss = 0
@@ -262,7 +264,7 @@ class YOLOv3(nn.Module):
         return modules
 
     # Load original weights file
-    def load_original_weights(self, weights_path: str):
+    def load_darknet_weights(self, weights_path: str):
         # Open the weights file
         with open(weights_path, "rb") as f:
             header = np.fromfile(f, dtype=np.int32, count=5)  # First five are header values (0~2: version, 3~4: seen)
