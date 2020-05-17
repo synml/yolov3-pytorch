@@ -368,7 +368,7 @@ class YOLOv3(nn.Module):
 
 if __name__ == '__main__':
     model = YOLOv3(img_size=416, num_classes=80)
-    model.load_original_weights('weights/yolov3.weights')
+    model.load_darknet_weights('weights/yolov3.weights')
     print(model)
 
     test = torch.rand([1, 3, 416, 416])
