@@ -11,6 +11,7 @@ from models import *
 from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
+from model_new import *
 
 
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers):
@@ -60,7 +61,8 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")
     parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
     parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
-    parser.add_argument("--weights_path", type=str, default="", help="path to weights file")
+    parser.add_argument("--pretrained_weights", type=str, default="weights/darknet53.conv.74",
+                        help="path to pretrained weights file")
     parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
     parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.5, help="iou threshold for non-maximum suppression")
@@ -76,13 +78,11 @@ if __name__ == "__main__":
     class_names = load_classes(data_config["names"])
 
     # Initiate model
-    model = Darknet(args.model_def, img_size=args.img_size).to(device)
-    if args.weights_path.endswith(".weights"):
-        # Load darknet weights
-        model.load_darknet_weights(args.weights_path)
+    model = YOLOv3(img_size=args.img_size, num_classes=data_config['classes']).to(device)
+    if args.pretrained_weights.endswith(".pth"):
+        model.load_state_dict(torch.load(args.pretrained_weights))
     else:
-        # Load checkpoint weights
-        model.load_state_dict(torch.load(args.weights_path))
+        model.load_original_weights(args.pretrained_weights)
 
     print("Compute mAP...")
 
