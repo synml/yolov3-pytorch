@@ -29,24 +29,12 @@ args = parser.parse_args()
 print(args)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Backup previous training results
-if os.path.exists('checkpoints') or os.path.exists('logs'):
-    creation_time = os.listdir('logs')[0].split('.')[3]
-    creation_time = time.strftime('%y%m%d_%H%M%S', time.localtime(float(creation_time)))
-    backup_dir = os.path.join('backup', creation_time)
-    os.makedirs(backup_dir, exist_ok=True)
-
-    if os.path.exists('checkpoints'):
-        shutil.move('checkpoints', backup_dir)
-    if os.path.exists('logs'):
-        shutil.move('logs', backup_dir)
-
-# Make directory for saving checkpoint files
-os.makedirs("checkpoints", exist_ok=True)
+now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
 
 # Tensorboard writer 객체 생성
-logger = Logger("logs")
+log_dir = os.path.join('logs', now)
+os.makedirs(log_dir, exist_ok=True)
+logger = Logger(log_dir)
 
 # Get data configuration
 data_config = parse_data_config(args.data_config)
@@ -149,5 +137,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     logger.list_of_scalars_summary(evaluation_metrics, epoch)
 
     # Save checkpoint file
+    save_dir = os.path.join('checkpoints', now)
+    os.makedirs(save_dir, exist_ok=True)
     dataset_name = os.path.split(args.data_config)[-1].split('.')[0]
-    torch.save(model.state_dict(), "checkpoints/yolov3_{}_{}.pth".format(dataset_name, epoch))
+    torch.save(model.state_dict(), os.path.join(save_dir + "yolov3_{}_{}.pth".format(dataset_name, epoch)))
