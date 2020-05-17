@@ -17,9 +17,9 @@ from utils.datasets import *
 parser = argparse.ArgumentParser()
 parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
 parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
+parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                     help="path to pretrained weights file")
-parser.add_argument("--class_path", type=str, default="../../data/voc/voc_classes.txt", help="path to class label file")
 parser.add_argument("--conf_thres", type=float, default=0.5, help="object confidence threshold")
 parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
 parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
@@ -30,6 +30,9 @@ args = parser.parse_args()
 print(args)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+data_config = parse_data_config(args.data_config)
+classes = load_classes(data_config["names"])  # Extracts class labels from file
 
 # Set up model
 model = Darknet(args.model_def, img_size=args.img_size).to(device)
@@ -47,8 +50,6 @@ dataloader = DataLoader(
     shuffle=False,
     num_workers=args.n_cpu,
 )
-
-classes = load_classes(args.class_path)  # Extracts class labels from file
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
