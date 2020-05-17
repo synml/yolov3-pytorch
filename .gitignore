@@ -1,6 +1,5 @@
 #Project ignores
 .idea/
-backup/
 checkpoints/
 logs/
 csv/
