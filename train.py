@@ -149,4 +149,4 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     logger.list_of_scalars_summary(evaluation_metrics, epoch)
 
     # Save checkpoint file
-    torch.save(model.state_dict(), "checkpoints/yolov3_ckpt_{}.pth".format(epoch + 1))
+    torch.save(model.state_dict(), "checkpoints/yolov3_ckpt_{}.pth".format(epoch))
