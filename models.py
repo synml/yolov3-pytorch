@@ -221,8 +221,6 @@ class Darknet(nn.Module):
         self.module_defs = parse_model_config(config_path)
         self.module_list = create_modules(self.module_defs, img_size)
         self.yolo_layers = [layer[0] for layer in self.module_list if hasattr(layer[0], "metrics")]
-        self.seen = 0
-        self.header_info = np.array([0, 0, 0, self.seen, 0], dtype=np.int32)
 
     def forward(self, x, targets=None):
         img_dim = x.shape[2]
@@ -252,8 +250,6 @@ class Darknet(nn.Module):
         # Open the weights file
         with open(weights_path, "rb") as f:
             header = np.fromfile(f, dtype=np.int32, count=5)  # First five are header values
-            self.header_info = header  # Needed to write header when saving weights
-            self.seen = header[3]  # number of images seen during training
             weights = np.fromfile(f, dtype=np.float32)  # The rest are weights
 
         # Establish cutoff for loading backbone weights
@@ -300,34 +296,6 @@ class Darknet(nn.Module):
                 conv_weights = conv_weights.view_as(conv_layer.weight)
                 conv_layer.weight.data.copy_(conv_weights)
                 ptr += num_weights
-
-    def save_darknet_weights(self, path, cutoff=-1):
-        """
-            @:param path    - path of the new weights file
-            @:param cutoff  - save layers between 0 and cutoff (cutoff = -1 -> all are saved)
-        """
-        fp = open(path, "wb")
-        self.header_info[3] = self.seen
-        self.header_info.tofile(fp)
-
-        # Iterate through layers
-        for i, (module_def, module) in enumerate(zip(self.module_defs[:cutoff], self.module_list[:cutoff])):
-            if module_def["type"] == "convolutional":
-                conv_layer = module[0]
-                # If batch norm, load bn first
-                if module_def["batch_normalize"]:
-                    bn_layer = module[1]
-                    bn_layer.bias.data.cpu().numpy().tofile(fp)
-                    bn_layer.weight.data.cpu().numpy().tofile(fp)
-                    bn_layer.running_mean.data.cpu().numpy().tofile(fp)
-                    bn_layer.running_var.data.cpu().numpy().tofile(fp)
-                # Load conv bias
-                else:
-                    conv_layer.bias.data.cpu().numpy().tofile(fp)
-                # Load conv weights
-                conv_layer.weight.data.cpu().numpy().tofile(fp)
-
-        fp.close()
 
 
 if __name__ == '__main__':
