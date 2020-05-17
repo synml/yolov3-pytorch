@@ -25,6 +25,7 @@ parser.add_argument("--pretrained_weights", type=str, default='weights/darknet53
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
 parser.add_argument("--multiscale_training", type=bool, default=True, help="allow for multi-scale training")
+parser.add_argument('--new_model', type=bool, default=True)
 args = parser.parse_args()
 print(args)
 
@@ -43,7 +44,10 @@ valid_path = data_config["valid"]
 class_names = load_classes(data_config["names"])
 
 # Initiate model
-model = Darknet(args.model_def, img_size=args.img_size).to(device)
+if args.new_model:
+    model = YOLOv3(416, 20).to(device)
+else:
+    model = Darknet(args.model_def, img_size=args.img_size).to(device)
 model.apply(init_weights_normal)
 
 # If specified we start from checkpoint
