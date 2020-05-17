@@ -135,7 +135,7 @@ class YOLOv3(nn.Module):
         anchors = {'scale1': [(116, 90), (156, 198), (373, 326)],
                    'scale2': [(30, 61), (62, 45), (59, 119)],
                    'scale3': [(10, 13), (16, 30), (33, 23)]}
-        final_out_channel = 3 * (4 + 1 + num_classes)
+        final_out_channel = 3 * (4 + 1 + int(num_classes))
 
         self.darknet53 = self.make_darknet53()
         self.conv_block1 = self.make_conv_block(1024, 512)
