@@ -78,11 +78,11 @@ if __name__ == "__main__":
     class_names = load_classes(data_config["names"])
 
     # Initiate model
-    model = YOLOv3(img_size=args.img_size, num_classes=data_config['classes']).to(device)
+    model = Darknet(args.model_def, img_size=args.img_size).to(device)
     if args.pretrained_weights.endswith(".pth"):
         model.load_state_dict(torch.load(args.pretrained_weights))
     else:
-        model.load_original_weights(args.pretrained_weights)
+        model.load_darknet_weights(args.pretrained_weights)
 
     print("Compute mAP...")
 
