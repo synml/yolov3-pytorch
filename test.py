@@ -7,11 +7,10 @@ import tqdm
 import torch
 from torch.utils.data import DataLoader
 
-from models import *
+from model_new import *
 from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
-from model_new import *
 
 
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers):
@@ -78,14 +77,13 @@ if __name__ == "__main__":
     class_names = load_classes(data_config["names"])
 
     # Initiate model
-    model = Darknet(args.model_def, img_size=args.img_size).to(device)
+    model = YOLOv3(args.img_size, data_config['classes']).to(device)
     if args.pretrained_weights.endswith(".pth"):
         model.load_state_dict(torch.load(args.pretrained_weights))
     else:
         model.load_darknet_weights(args.pretrained_weights)
 
     print("Compute mAP...")
-
     precision, recall, AP, f1, ap_class = evaluate(
         model,
         path=valid_path,
