@@ -15,7 +15,7 @@ from test import evaluate
 from model_new import *
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--epochs", type=int, default=200, help="number of epochs")
+parser.add_argument("--epochs", type=int, default=100, help="number of epochs")
 parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
 parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
 parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
