@@ -100,7 +100,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         tensorboard_log = []
         for i, yolo in enumerate(model.yolo_layers):
             for name, metric in yolo.metrics.items():
-                if name != "grid_size":
+                if name == "layer_loss":
                     tensorboard_log += [(f"{name}_{i + 1}", metric)]
         tensorboard_log += [("loss", loss.item())]
         logger.list_of_scalars_summary(tensorboard_log, step)
