@@ -16,7 +16,7 @@ from model_new import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=200, help="number of epochs")
-parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")
+parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
 parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
 parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
@@ -78,6 +78,7 @@ loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
 # Training code.
 for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     model.train()
+    tensorboard_log = []
 
     for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Batch', leave=False)):
         step = len(dataloader) * epoch + batch_i
@@ -97,12 +98,9 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         loss_log.set_description_str('Loss: {:.6f}'.format(loss.item()))
 
         # Tensorboard logging
-        tensorboard_log = []
-        for i, yolo in enumerate(model.yolo_layers):
-            for name, metric in yolo.metrics.items():
-                if name == "layer_loss":
-                    tensorboard_log += [(f"{name}_{i + 1}", metric)]
-        tensorboard_log += [("loss", loss.item())]
+        for i, yolo_layer in enumerate(model.yolo_layers):
+            tensorboard_log += [(f"{'layer_loss'}_{i + 1}", yolo_layer.metrics['layer_loss'])]
+        tensorboard_log += [("total_loss", loss.item())]
         logger.list_of_scalars_summary(tensorboard_log, step)
 
     scheduler.step()
