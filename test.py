@@ -77,7 +77,7 @@ if __name__ == "__main__":
     class_names = load_classes(data_config["names"])
 
     # Initiate model
-    model = YOLOv3(args.img_size, data_config['classes']).to(device)
+    model = YOLOv3(args.img_size, int(data_config['classes'])).to(device)
     if args.pretrained_weights.endswith(".pth"):
         model.load_state_dict(torch.load(args.pretrained_weights))
     else:

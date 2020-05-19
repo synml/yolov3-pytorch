@@ -41,7 +41,7 @@ valid_path = data_config["valid"]
 class_names = load_classes(data_config["names"])
 
 # Initiate model
-model = YOLOv3(args.img_size, data_config['classes']).to(device)
+model = YOLOv3(args.img_size, int(data_config['classes'])).to(device)
 model.apply(init_weights_normal)
 
 # If specified we start from checkpoint
