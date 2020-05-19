@@ -95,38 +95,38 @@ class YOLODetection(nn.Module):
             loss_conf_noobj = self.bce_loss(pred_conf[noobj_mask], tconf[noobj_mask])
             loss_conf = self.obj_scale * loss_conf_obj + self.noobj_scale * loss_conf_noobj
             loss_cls = self.bce_loss(pred_cls[obj_mask], tcls[obj_mask])
-            total_loss = loss_x + loss_y + loss_w + loss_h + loss_conf + loss_cls
+            layer_loss = loss_x + loss_y + loss_w + loss_h + loss_conf + loss_cls
 
             # Metrics
-            cls_acc = 100 * class_mask[obj_mask].mean()
-            conf_obj = pred_conf[obj_mask].mean()
-            conf_noobj = pred_conf[noobj_mask].mean()
             conf50 = (pred_conf > 0.5).float()
             iou50 = (iou_scores > 0.5).float()
             iou75 = (iou_scores > 0.75).float()
             detected_mask = conf50 * class_mask * tconf
+            cls_acc = 100 * class_mask[obj_mask].mean()
+            conf_obj = pred_conf[obj_mask].mean()
+            conf_noobj = pred_conf[noobj_mask].mean()
             precision = torch.sum(iou50 * detected_mask) / (conf50.sum() + 1e-16)
             recall50 = torch.sum(iou50 * detected_mask) / (obj_mask.sum() + 1e-16)
             recall75 = torch.sum(iou75 * detected_mask) / (obj_mask.sum() + 1e-16)
 
             self.metrics = {
-                "loss": to_cpu(total_loss).item(),
-                "x": to_cpu(loss_x).item(),
-                "y": to_cpu(loss_y).item(),
-                "w": to_cpu(loss_w).item(),
-                "h": to_cpu(loss_h).item(),
-                "conf": to_cpu(loss_conf).item(),
-                "cls": to_cpu(loss_cls).item(),
+                "loss_x": to_cpu(loss_x).item(),
+                "loss_y": to_cpu(loss_y).item(),
+                "loss_w": to_cpu(loss_w).item(),
+                "loss_h": to_cpu(loss_h).item(),
+                "loss_conf": to_cpu(loss_conf).item(),
+                "loss_cls": to_cpu(loss_cls).item(),
+                "layer_loss": to_cpu(layer_loss).item(),
                 "cls_acc": to_cpu(cls_acc).item(),
-                "recall50": to_cpu(recall50).item(),
-                "recall75": to_cpu(recall75).item(),
-                "precision": to_cpu(precision).item(),
                 "conf_obj": to_cpu(conf_obj).item(),
                 "conf_noobj": to_cpu(conf_noobj).item(),
+                "precision": to_cpu(precision).item(),
+                "recall50": to_cpu(recall50).item(),
+                "recall75": to_cpu(recall75).item(),
                 "grid_size": grid_size,
             }
 
-            return output, total_loss
+            return output, layer_loss
 
 
 class YOLOv3(nn.Module):
@@ -166,28 +166,26 @@ class YOLOv3(nn.Module):
                 if module_type == 'conv':
                     x = module(x)
                 elif module_type == 'residual':
-                    block_iter = int(key.split('_')[-1][0])
-                    for i in range(block_iter):
-                        residual = x
-                        out = module[i](x)
-                        x = out + residual
-                    residual_output[key] = x
+                    out = module(x)
+                    x += out
+                    if key == 'residual_3_8' or key == 'residual_4_8' or key == 'residual_5_4':
+                        residual_output[key] = x
 
         # Yolov3 layer forward
-        conv_b1 = self.conv_block1(residual_output['residual_5_4x'])
+        conv_b1 = self.conv_block1(residual_output['residual_5_4'])
         scale1 = self.conv_final1(conv_b1)
         yolo_output1, layer_loss = self.yolo_layer1(scale1, targets)
         loss += layer_loss
 
         scale2 = self.upsample1(conv_b1)
-        scale2 = torch.cat((scale2, residual_output['residual_4_8x']), dim=1)
+        scale2 = torch.cat((scale2, residual_output['residual_4_8']), dim=1)
         conv_b2 = self.conv_block2(scale2)
         scale2 = self.conv_final2(conv_b2)
         yolo_output2, layer_loss = self.yolo_layer2(scale2, targets)
         loss += layer_loss
 
         scale3 = self.upsample2(conv_b2)
-        scale3 = torch.cat((scale3, residual_output['residual_3_8x']), dim=1)
+        scale3 = torch.cat((scale3, residual_output['residual_3_8']), dim=1)
         conv_b3 = self.conv_block3(scale3)
         scale3 = self.conv_final3(conv_b3)
         yolo_output3, layer_loss = self.yolo_layer3(scale3, targets)
@@ -202,15 +200,33 @@ class YOLOv3(nn.Module):
 
         modules['conv_1'] = self.make_conv(3, 32, kernel_size=3, requires_grad=False)
         modules['conv_2'] = self.make_conv(32, 64, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_1_1x'] = self.make_residual_block(in_channels=64, num_blocks=1)
+        modules['residual_1_1'] = self.make_residual_block(in_channels=64)
         modules['conv_3'] = self.make_conv(64, 128, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_2_2x'] = self.make_residual_block(in_channels=128, num_blocks=2)
+        modules['residual_2_1'] = self.make_residual_block(in_channels=128)
+        modules['residual_2_2'] = self.make_residual_block(in_channels=128)
         modules['conv_4'] = self.make_conv(128, 256, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_3_8x'] = self.make_residual_block(in_channels=256, num_blocks=8)
+        modules['residual_3_1'] = self.make_residual_block(in_channels=256)
+        modules['residual_3_2'] = self.make_residual_block(in_channels=256)
+        modules['residual_3_3'] = self.make_residual_block(in_channels=256)
+        modules['residual_3_4'] = self.make_residual_block(in_channels=256)
+        modules['residual_3_5'] = self.make_residual_block(in_channels=256)
+        modules['residual_3_6'] = self.make_residual_block(in_channels=256)
+        modules['residual_3_7'] = self.make_residual_block(in_channels=256)
+        modules['residual_3_8'] = self.make_residual_block(in_channels=256)
         modules['conv_5'] = self.make_conv(256, 512, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_4_8x'] = self.make_residual_block(in_channels=512, num_blocks=8)
+        modules['residual_4_1'] = self.make_residual_block(in_channels=512)
+        modules['residual_4_2'] = self.make_residual_block(in_channels=512)
+        modules['residual_4_3'] = self.make_residual_block(in_channels=512)
+        modules['residual_4_4'] = self.make_residual_block(in_channels=512)
+        modules['residual_4_5'] = self.make_residual_block(in_channels=512)
+        modules['residual_4_6'] = self.make_residual_block(in_channels=512)
+        modules['residual_4_7'] = self.make_residual_block(in_channels=512)
+        modules['residual_4_8'] = self.make_residual_block(in_channels=512)
         modules['conv_6'] = self.make_conv(512, 1024, kernel_size=3, stride=2, requires_grad=False)
-        modules['residual_5_4x'] = self.make_residual_block(in_channels=1024, num_blocks=4)
+        modules['residual_5_1'] = self.make_residual_block(in_channels=1024)
+        modules['residual_5_2'] = self.make_residual_block(in_channels=1024)
+        modules['residual_5_3'] = self.make_residual_block(in_channels=1024)
+        modules['residual_5_4'] = self.make_residual_block(in_channels=1024)
         return modules
 
     def make_conv(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=1, requires_grad=True):
@@ -243,17 +259,13 @@ class YOLOv3(nn.Module):
         )
         return modules
 
-    def make_residual_block(self, in_channels: int, num_blocks: int):
+    def make_residual_block(self, in_channels: int):
         half_channels = in_channels // 2
         block = nn.Sequential(
             self.make_conv(in_channels, half_channels, kernel_size=1, padding=0, requires_grad=False),
             self.make_conv(half_channels, in_channels, kernel_size=3, requires_grad=False)
         )
-
-        modules = nn.ModuleList()
-        for i in range(num_blocks):
-            modules.append(block)
-        return modules
+        return block
 
     def make_upsample(self, in_channels: int, out_channels: int, scale_factor: int):
         modules = nn.Sequential(
@@ -280,11 +292,9 @@ class YOLOv3(nn.Module):
                 ptr = self.load_conv_weights(module[0], weights, ptr)
 
             elif module_type == 'residual':
-                block_iter = int(key.split('_')[-1][0])
-                for i in range(block_iter):
-                    for k in range(2):
-                        ptr = self.load_bn_weights(module[i][k][1], weights, ptr)
-                        ptr = self.load_conv_weights(module[i][k][0], weights, ptr)
+                for i in range(2):
+                    ptr = self.load_bn_weights(module[i][1], weights, ptr)
+                    ptr = self.load_conv_weights(module[i][0], weights, ptr)
 
         # Load YOLOv3 weights
         if weights_path.find('yolov3.weights') != -1:
