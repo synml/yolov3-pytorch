@@ -6,26 +6,23 @@ from torch.utils.data import DataLoader
 import tqdm
 import time
 
-from models import *
+from model_new import *
 from utils.logger import *
 from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
 from test import evaluate
-from model_new import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=100, help="number of epochs")
 parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
 parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
-parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weights", type=str, default='weights/darknet53.conv.74',
                     help="if specified starts from checkpoint model")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
 parser.add_argument("--multiscale_training", type=bool, default=True, help="allow for multi-scale training")
-parser.add_argument('--new_model', type=bool, default=True)
 args = parser.parse_args()
 print(args)
 
@@ -44,10 +41,7 @@ valid_path = data_config["valid"]
 class_names = load_classes(data_config["names"])
 
 # Initiate model
-if args.new_model:
-    model = YOLOv3(416, 20).to(device)
-else:
-    model = Darknet(args.model_def, img_size=args.img_size).to(device)
+model = YOLOv3(args.img_size, data_config['classes']).to(device)
 model.apply(init_weights_normal)
 
 # If specified we start from checkpoint
@@ -70,7 +64,7 @@ dataloader = torch.utils.data.DataLoader(dataset,
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 # Set learning rate scheduler
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=9, gamma=0.8)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.8)
 
 # Set printing current batch loss tqdm
 loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
