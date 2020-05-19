@@ -78,7 +78,6 @@ loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
 # Training code.
 for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     model.train()
-    tensorboard_log = []
 
     for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Batch', leave=False)):
         step = len(dataloader) * epoch + batch_i
@@ -98,6 +97,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         loss_log.set_description_str('Loss: {:.6f}'.format(loss.item()))
 
         # Tensorboard logging
+        tensorboard_log = []
         for i, yolo_layer in enumerate(model.yolo_layers):
             tensorboard_log += [(f"{'layer_loss'}_{i + 1}", yolo_layer.metrics['layer_loss'])]
         tensorboard_log += [("total_loss", loss.item())]
