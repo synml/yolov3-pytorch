@@ -2,8 +2,8 @@ import argparse
 import os
 import tqdm
 
-from torch.utils.data import DataLoader
-from torch.autograd import Variable
+import torch
+import torch.utils.data
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
@@ -13,7 +13,6 @@ from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
@@ -21,7 +20,7 @@ parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_vo
                     help="path to pretrained weights file")
 parser.add_argument("--conf_thres", type=float, default=0.5, help="object confidence threshold")
 parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
-parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
+parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
 parser.add_argument("--save_folder", type=str, default='../../detect', help='path to saving result folder')
@@ -31,7 +30,7 @@ print(args)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 data_config = parse_data_config(args.data_config)
-classes = load_classes(data_config["names"])  # Extracts class labels from file
+classes = load_classes(data_config["names"])
 
 # Set up model
 model = YOLOv3(args.img_size, int(data_config['classes'])).to(device)
@@ -40,32 +39,28 @@ if args.pretrained_weights.endswith('.pth'):
 else:
     model.load_darknet_weights(args.pretrained_weights)
 
-model.eval()  # Set in evaluation mode
+# Set in evaluation mode
+model.eval()
 
-dataloader = DataLoader(
-    ImageFolder(args.image_folder, img_size=args.img_size),
-    batch_size=args.batch_size,
-    shuffle=False,
-    num_workers=args.n_cpu,
-)
+dataset = ImageFolder(args.image_folder, img_size=args.img_size)
+dataloader = torch.utils.data.DataLoader(dataset,
+                                         batch_size=args.batch_size,
+                                         shuffle=False,
+                                         num_workers=args.n_cpu)
 
-Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
-
-imgs = []  # Stores image paths
+img_paths = []  # Stores image paths
 img_detections = []  # Stores detections for each image index
-
-print("\nPerforming object detection:")
-for batch_i, (img_paths, input_imgs) in enumerate(tqdm.tqdm(dataloader, desc='Batch')):
+for batch_i, (paths, imgs) in enumerate(tqdm.tqdm(dataloader, desc='Batch')):
     # Configure input
-    input_imgs = Variable(input_imgs.type(Tensor))
+    imgs = imgs.to(device)
 
     # Get detections
     with torch.no_grad():
-        detections = model(input_imgs)
+        detections = model(imgs)
         detections = non_max_suppression(detections, args.conf_thres, args.nms_thres)
 
     # Save image and detections
-    imgs.extend(img_paths)
+    img_paths.extend(paths)
     img_detections.extend(detections)
 
 # Bounding-box colors
@@ -76,7 +71,7 @@ os.makedirs(args.save_folder, exist_ok=True)
 
 print("\nSaving images:")
 # Iterate through images and save plot of detections
-for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
+for img_i, (path, detections) in enumerate(zip(img_paths, img_detections)):
 
     # Replace Windows path separator to Linux path separator
     path = path.replace('\\', '/')

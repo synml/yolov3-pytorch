@@ -2,7 +2,7 @@ import argparse
 import os
 
 import torch
-from torch.utils.data import DataLoader
+import torch.utils.data
 import tqdm
 import time
 
