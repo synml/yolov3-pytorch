@@ -6,7 +6,7 @@ import torch.utils.data
 import tqdm
 import time
 
-from model_new import *
+from yolov3 import *
 from utils.logger import *
 from utils.utils import *
 from utils.datasets import *

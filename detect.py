@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
 
-from model_new import *
+from yolov3 import *
 from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
