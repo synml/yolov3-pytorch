@@ -64,7 +64,7 @@ dataloader = torch.utils.data.DataLoader(dataset,
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 # Set learning rate scheduler
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.8)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=9, gamma=0.8)
 
 # Set printing current batch loss tqdm
 loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
