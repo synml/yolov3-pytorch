@@ -57,8 +57,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")
-    parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
+    parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
     parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
     parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                         help="path to pretrained weights file")
