@@ -56,12 +56,12 @@ for batch_i, (paths, imgs) in enumerate(tqdm.tqdm(dataloader, desc='Batch')):
 
     # Get detections
     with torch.no_grad():
-        detections = model(imgs)
-        detections = non_max_suppression(detections, args.conf_thres, args.nms_thres)
+        prediction = model(imgs)
+        prediction = non_max_suppression(prediction, args.conf_thres, args.nms_thres)
 
     # Save image and detections
     img_paths.extend(paths)
-    img_detections.extend(detections)
+    img_detections.extend(prediction)
 
 # Bounding-box colors
 cmap = plt.get_cmap("tab20b")
