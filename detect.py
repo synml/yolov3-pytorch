@@ -1,7 +1,6 @@
 import argparse
-import datetime
 import os
-import time
+import tqdm
 
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
@@ -56,8 +55,7 @@ imgs = []  # Stores image paths
 img_detections = []  # Stores detections for each image index
 
 print("\nPerforming object detection:")
-prev_time = time.time()
-for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
+for batch_i, (img_paths, input_imgs) in enumerate(tqdm.tqdm(dataloader, desc='Batch')):
     # Configure input
     input_imgs = Variable(input_imgs.type(Tensor))
 
@@ -65,12 +63,6 @@ for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
     with torch.no_grad():
         detections = model(input_imgs)
         detections = non_max_suppression(detections, args.conf_thres, args.nms_thres)
-
-    # Log progress
-    current_time = time.time()
-    inference_time = datetime.timedelta(seconds=current_time - prev_time)
-    prev_time = current_time
-    print("\tBatch %d, Inference Time: %s" % (batch_i, inference_time))
 
     # Save image and detections
     imgs.extend(img_paths)
