@@ -9,14 +9,14 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
 
-from models import *
+from model_new import *
 from utils.utils import *
 from utils.datasets import *
+from utils.parse_config import *
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
-parser.add_argument("--model_def", type=str, default="config/yolov3-voc.cfg", help="path to model definition file")
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                     help="path to pretrained weights file")
@@ -35,8 +35,7 @@ data_config = parse_data_config(args.data_config)
 classes = load_classes(data_config["names"])  # Extracts class labels from file
 
 # Set up model
-model = Darknet(args.model_def, img_size=args.img_size).to(device)
-
+model = YOLOv3(args.img_size, int(data_config['classes'])).to(device)
 if args.pretrained_weights.endswith('.pth'):
     model.load_state_dict(torch.load(args.pretrained_weights))
 else:
