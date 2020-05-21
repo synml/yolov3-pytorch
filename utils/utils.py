@@ -3,10 +3,6 @@ import numpy as np
 import tqdm
 
 
-def to_cpu(tensor):
-    return tensor.detach().cpu()
-
-
 def load_classes(path):
     """
     Loads class labels at 'path'
