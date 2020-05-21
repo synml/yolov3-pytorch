@@ -2,22 +2,22 @@ import argparse
 import csv
 import os
 import time
-import tqdm
 
 import torch
 import torch.utils.data
+import tqdm
 
 from yolov3 import *
-from utils.datasets import *
-from utils.utils import *
+import utils.datasets
 import utils.parse_config
+from utils.utils import *
 
 
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers):
     model.eval()
 
     # Get dataloader
-    dataset = ListDataset(path, img_size=img_size, augment=False, multiscale=False)
+    dataset = utils.datasets.ListDataset(path, img_size=img_size, augment=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(
         dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, collate_fn=dataset.collate_fn
     )
@@ -61,11 +61,11 @@ if __name__ == "__main__":
     parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
     parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                         help="path to pretrained weights file")
+    parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
     parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.5, help="iou threshold for non-maximum suppression")
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
-    parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     args = parser.parse_args()
     print(args)
 

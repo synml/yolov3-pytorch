@@ -1,29 +1,32 @@
 import argparse
 import os
-import tqdm
+import random
 
 import torch
 import torch.utils.data
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
+from PIL import Image
+import tqdm
 
 from yolov3 import *
-from utils.utils import *
-from utils.datasets import *
+import utils.datasets
 import utils.parse_config
+from utils.utils import *
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
+parser.add_argument("--save_folder", type=str, default='../../detect', help='path to saving result folder')
+parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                     help="path to pretrained weights file")
+parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
 parser.add_argument("--conf_thres", type=float, default=0.5, help="object confidence threshold")
 parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
-parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
-parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
-parser.add_argument("--save_folder", type=str, default='../../detect', help='path to saving result folder')
 args = parser.parse_args()
 print(args)
 
@@ -42,7 +45,7 @@ else:
 # Set in evaluation mode
 model.eval()
 
-dataset = ImageFolder(args.image_folder, img_size=args.img_size)
+dataset = utils.datasets.ImageFolder(args.image_folder, img_size=args.img_size)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=False,

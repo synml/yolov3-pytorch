@@ -7,22 +7,22 @@ import torch.utils.data
 import tqdm
 
 from yolov3 import *
+import utils.datasets
 import utils.logger
 import utils.parse_config
-from utils.datasets import *
 from utils.utils import *
 from test import evaluate
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=100, help="number of epochs")
-parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
 parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
+parser.add_argument("--multiscale_training", type=bool, default=True, help="allow for multi-scale training")
+parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weights", type=str, default='weights/darknet53.conv.74',
                     help="if specified starts from checkpoint model")
-parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
-parser.add_argument("--multiscale_training", type=bool, default=True, help="allow for multi-scale training")
+parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 args = parser.parse_args()
 print(args)
 
@@ -52,7 +52,7 @@ if args.pretrained_weights:
         model.load_darknet_weights(args.pretrained_weights)
 
 # Get dataloader
-dataset = ListDataset(train_path, augment=True, multiscale=args.multiscale_training)
+dataset = utils.datasets.ListDataset(train_path, augment=True, multiscale=args.multiscale_training)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=True,
