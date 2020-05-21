@@ -1,16 +1,16 @@
 import argparse
 import os
+import time
 
 import torch
 import torch.utils.data
 import tqdm
-import time
 
 from yolov3 import *
-from utils.logger import *
-from utils.utils import *
+import utils.logger
+import utils.parse_config
 from utils.datasets import *
-from utils.parse_config import *
+from utils.utils import *
 from test import evaluate
 
 parser = argparse.ArgumentParser()
@@ -32,10 +32,10 @@ now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
 # Tensorboard writer 객체 생성
 log_dir = os.path.join('logs', now)
 os.makedirs(log_dir, exist_ok=True)
-logger = Logger(log_dir)
+logger = utils.logger.Logger(log_dir)
 
 # Get data configuration
-data_config = parse_data_config(args.data_config)
+data_config = utils.parse_config.parse_data_config(args.data_config)
 train_path = data_config["train"]
 valid_path = data_config["valid"]
 class_names = load_classes(data_config["names"])

@@ -18,7 +18,7 @@ def pad_to_square(img, pad_value):
     # (upper / left) padding and (lower / right) padding
     pad1, pad2 = dim_diff // 2, dim_diff - dim_diff // 2
     # Determine padding
-    pad = (0, 0, pad1, pad2) if h <= w else (pad1, pad2, 0, 0)
+    pad = [0, 0, pad1, pad2] if h <= w else [pad1, pad2, 0, 0]
     # Add padding
     img = F.pad(img, pad, "constant", value=pad_value)
 

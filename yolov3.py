@@ -1,9 +1,9 @@
-import numpy as np
 import torch
 import torch.nn as nn
+import numpy as np
 
-from utils.utils import build_targets, to_cpu
 import utils.logger
+import utils.utils
 
 
 class YOLODetection(nn.Module):
@@ -76,12 +76,12 @@ class YOLODetection(nn.Module):
         if targets is None:
             return output, 0
 
-        iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf = build_targets(
+        iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf = utils.utils.build_targets(
             pred_boxes=pred_boxes,
             pred_cls=pred_cls,
             target=targets,
             anchors=self.scaled_anchors,
-            ignore_thres=self.ignore_thres,
+            ignore_thres=self.ignore_thres
         )
 
         # Loss: Mask outputs to ignore non-existing objects (except with conf. loss)
@@ -109,19 +109,19 @@ class YOLODetection(nn.Module):
 
         # Write loss and metrics
         self.metrics = {
-            "loss_x": to_cpu(loss_x).item(),
-            "loss_y": to_cpu(loss_y).item(),
-            "loss_w": to_cpu(loss_w).item(),
-            "loss_h": to_cpu(loss_h).item(),
-            "loss_conf": to_cpu(loss_conf).item(),
-            "loss_cls": to_cpu(loss_cls).item(),
-            "layer_loss": to_cpu(layer_loss).item(),
-            "cls_acc": to_cpu(cls_acc).item(),
-            "conf_obj": to_cpu(conf_obj).item(),
-            "conf_noobj": to_cpu(conf_noobj).item(),
-            "precision": to_cpu(precision).item(),
-            "recall50": to_cpu(recall50).item(),
-            "recall75": to_cpu(recall75).item(),
+            "loss_x": loss_x.detach().cpu().item(),
+            "loss_y": loss_y.detach().cpu().item(),
+            "loss_w": loss_w.detach().cpu().item(),
+            "loss_h": loss_h.detach().cpu().item(),
+            "loss_conf": loss_conf.detach().cpu().item(),
+            "loss_cls": loss_cls.detach().cpu().item(),
+            "layer_loss": layer_loss.detach().cpu().item(),
+            "cls_acc": cls_acc.detach().cpu().item(),
+            "conf_obj": conf_obj.detach().cpu().item(),
+            "conf_noobj": conf_noobj.detach().cpu().item(),
+            "precision": precision.detach().cpu().item(),
+            "recall50": recall50.detach().cpu().item(),
+            "recall75": recall75.detach().cpu().item()
         }
 
         return output, layer_loss
@@ -190,7 +190,7 @@ class YOLOv3(nn.Module):
         loss += layer_loss
 
         yolo_outputs = [yolo_output1, yolo_output2, yolo_output3]
-        yolo_outputs = utils.utils.to_cpu(torch.cat(yolo_outputs, 1))
+        yolo_outputs = torch.cat(yolo_outputs, 1).detach().cpu()
         return yolo_outputs if targets is None else (loss, yolo_outputs)
 
     def make_darknet53(self):

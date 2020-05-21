@@ -5,12 +5,12 @@ import time
 import tqdm
 
 import torch
-from torch.utils.data import DataLoader
+import torch.utils.data
 
 from yolov3 import *
-from utils.utils import *
 from utils.datasets import *
-from utils.parse_config import *
+from utils.utils import *
+import utils.parse_config
 
 
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers):
@@ -57,7 +57,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
+    parser.add_argument("--batch_size", type=int, default=8, help="size of each image batch")
     parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
     parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                         help="path to pretrained weights file")
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    data_config = parse_data_config(args.data_config)
+    data_config = utils.parse_config.parse_data_config(args.data_config)
     valid_path = data_config["valid"]
     class_names = load_classes(data_config["names"])
 

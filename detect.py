@@ -11,7 +11,7 @@ from matplotlib.ticker import NullLocator
 from yolov3 import *
 from utils.utils import *
 from utils.datasets import *
-from utils.parse_config import *
+import utils.parse_config
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
@@ -29,7 +29,7 @@ print(args)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-data_config = parse_data_config(args.data_config)
+data_config = utils.parse_config.parse_data_config(args.data_config)
 classes = load_classes(data_config["names"])
 
 # Set up model

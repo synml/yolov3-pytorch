@@ -1,10 +1,10 @@
-from torch.utils.tensorboard import SummaryWriter
+import torch.utils.tensorboard
 
 
 class Logger:
     def __init__(self, log_dir):
         """Create a summary writer logging to log_dir."""
-        self.writer = SummaryWriter(log_dir)
+        self.writer = torch.utils.tensorboard.SummaryWriter(log_dir)
 
     def add_scalar(self, tag, value, step):
         """Log a scalar variable."""
