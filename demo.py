@@ -72,7 +72,6 @@ colors = [cmap(i) for i in np.linspace(0, 1, 20)]
 
 os.makedirs(args.save_folder, exist_ok=True)
 
-print("\nSaving images:")
 # Iterate through images and save plot of detections
 for img_i, (path, detections) in enumerate(zip(img_paths, img_detections)):
 
