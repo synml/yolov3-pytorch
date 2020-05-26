@@ -82,7 +82,7 @@ if __name__ == "__main__":
     else:
         model.load_darknet_weights(args.pretrained_weights)
 
-    print('Compute mAP...')
+    # Compute mAP
     precision, recall, AP, f1, ap_class = evaluate(
         model,
         path=valid_path,
