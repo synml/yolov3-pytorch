@@ -53,11 +53,9 @@ dataloader = torch.utils.data.DataLoader(dataset,
 img_paths = []  # Stores image paths
 img_detections = []  # Stores detections for each image index
 for batch_i, (paths, imgs) in enumerate(tqdm.tqdm(dataloader, desc='Batch')):
-    # Configure input
-    imgs = imgs.to(device)
-
     # Get detections
     with torch.no_grad():
+        imgs = imgs.to(device)
         prediction = model(imgs)
         prediction = non_max_suppression(prediction, args.conf_thres, args.nms_thres)
 
