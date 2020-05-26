@@ -126,9 +126,9 @@ class YOLODetection(nn.Module):
         return output, layer_loss
 
 
-class YOLOv3(nn.Module):
+class ProposedYOLOv3(nn.Module):
     def __init__(self, img_size: int, num_classes: int):
-        super(YOLOv3, self).__init__()
+        super(ProposedYOLOv3, self).__init__()
         anchors = {'scale1': [(350, 256), (262, 350), (378, 378)],
                    'scale2': [(209, 215), (326, 153), (178, 333)],
                    'scale3': [(182, 99), (131, 175), (120, 296)],
@@ -352,7 +352,7 @@ class YOLOv3(nn.Module):
 
 
 if __name__ == '__main__':
-    model = YOLOv3(img_size=416, num_classes=80)
+    model = ProposedYOLOv3(img_size=416, num_classes=80)
     model.load_darknet_weights('weights/darknet53.conv.74')
     print(model)
 

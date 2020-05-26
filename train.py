@@ -7,7 +7,8 @@ import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
 
-from yolov3 import *
+import model.yolov3
+import model.yolov3_proposed
 import utils.datasets
 from utils.utils import *
 from test import evaluate
@@ -40,7 +41,7 @@ valid_path = data_config['valid']
 class_names = load_classes(data_config['names'])
 
 # Initiate model
-model = YOLOv3(args.img_size, int(data_config['classes'])).to(device)
+model = model.yolov3.YOLOv3(args.img_size, int(data_config['classes'])).to(device)
 model.apply(init_weights_normal)
 
 # If specified we start from checkpoint

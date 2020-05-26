@@ -10,7 +10,8 @@ from matplotlib.ticker import NullLocator
 from PIL import Image
 import tqdm
 
-from yolov3 import *
+import model.yolov3
+import model.yolov3_proposed
 import utils.datasets
 from utils.utils import *
 
@@ -35,7 +36,7 @@ data_config = parse_data_config(args.data_config)
 classes = load_classes(data_config["names"])
 
 # Set up model
-model = YOLOv3(args.img_size, int(data_config['classes'])).to(device)
+model = model.yolov3.YOLOv3(args.img_size, int(data_config['classes'])).to(device)
 if args.pretrained_weights.endswith('.pth'):
     model.load_state_dict(torch.load(args.pretrained_weights))
 else:

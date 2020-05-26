@@ -7,7 +7,8 @@ import torch
 import torch.utils.data
 import tqdm
 
-from yolov3 import *
+import model.yolov3
+import model.yolov3_proposed
 import utils.datasets
 from utils.utils import *
 
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     class_names = load_classes(data_config['names'])
 
     # Initiate model
-    model = YOLOv3(args.img_size, int(data_config['classes'])).to(device)
+    model = model.yolov3.YOLOv3(args.img_size, int(data_config['classes'])).to(device)
     if args.pretrained_weights.endswith('.pth'):
         model.load_state_dict(torch.load(args.pretrained_weights))
     else:
