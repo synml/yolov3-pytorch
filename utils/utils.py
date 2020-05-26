@@ -3,7 +3,7 @@ import numpy as np
 import tqdm
 
 
-def load_classes(path):
+def load_classes(path: str):
     """
     Loads class labels at 'path'
     """
