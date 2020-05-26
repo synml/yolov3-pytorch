@@ -43,7 +43,7 @@ def resize(image, size):
 
 
 class ImageFolder(Dataset):
-    def __init__(self, folder_path, img_size=416):
+    def __init__(self, folder_path: str, img_size: int):
         self.files = sorted(glob.glob('%s/*.*' % folder_path))
         self.img_size = img_size
 
@@ -62,7 +62,7 @@ class ImageFolder(Dataset):
 
 
 class ListDataset(Dataset):
-    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True):
+    def __init__(self, list_path: str, img_size=416, augment=True, multiscale=True, normalized_labels=True):
         with open(list_path, 'r') as file:
             self.img_files = file.readlines()
 
