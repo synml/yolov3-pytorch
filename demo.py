@@ -12,7 +12,6 @@ import tqdm
 
 from yolov3 import *
 import utils.datasets
-import utils.parse_config
 from utils.utils import *
 
 
@@ -32,7 +31,7 @@ print(args)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-data_config = utils.parse_config.parse_data_config(args.data_config)
+data_config = parse_data_config(args.data_config)
 classes = load_classes(data_config["names"])
 
 # Set up model

@@ -9,7 +9,6 @@ import tqdm
 
 from yolov3 import *
 import utils.datasets
-import utils.parse_config
 from utils.utils import *
 from test import evaluate
 
@@ -35,7 +34,7 @@ os.makedirs(log_dir, exist_ok=True)
 writer = torch.utils.tensorboard.SummaryWriter(log_dir)
 
 # Get data configuration
-data_config = utils.parse_config.parse_data_config(args.data_config)
+data_config = parse_data_config(args.data_config)
 train_path = data_config['train']
 valid_path = data_config['valid']
 class_names = load_classes(data_config['names'])
