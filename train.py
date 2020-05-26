@@ -4,11 +4,11 @@ import time
 
 import torch
 import torch.utils.data
+import torch.utils.tensorboard
 import tqdm
 
 from yolov3 import *
 import utils.datasets
-import utils.logger
 import utils.parse_config
 from utils.utils import *
 from test import evaluate
@@ -32,7 +32,7 @@ now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
 # Tensorboard writer 객체 생성
 log_dir = os.path.join('logs', now)
 os.makedirs(log_dir, exist_ok=True)
-logger = utils.logger.Logger(log_dir)
+writer = torch.utils.tensorboard.SummaryWriter(log_dir)
 
 # Get data configuration
 data_config = utils.parse_config.parse_data_config(args.data_config)
@@ -93,9 +93,10 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         # Tensorboard logging
         tensorboard_log = []
         for i, yolo_layer in enumerate(model.yolo_layers):
-            tensorboard_log += [(f"{'layer_loss'}_{i + 1}", yolo_layer.metrics['layer_loss'])]
-        tensorboard_log += [("total_loss", loss.item())]
-        logger.list_of_scalars_summary(tensorboard_log, step)
+            tensorboard_log.append((f"{'layer_loss'}_{i + 1}", yolo_layer.metrics['layer_loss']))
+        tensorboard_log.append(("total_loss", loss.item()))
+        for tag, value in tensorboard_log:
+            writer.add_scalar(tag, value, step)
 
     scheduler.step()
 
@@ -114,7 +115,8 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         ("val_mAP", AP.mean()),
         ("val_f1", f1.mean()),
     ]
-    logger.list_of_scalars_summary(evaluation_metrics, epoch)
+    for tag, value in evaluation_metrics:
+        writer.add_scalar(tag, value, epoch)
 
     # Save checkpoint file
     save_dir = os.path.join('checkpoints', now)

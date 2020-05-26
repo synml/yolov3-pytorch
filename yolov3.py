@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
+import torch.utils.tensorboard
 import numpy as np
 
-import utils.logger
 import utils.utils
 
 
@@ -382,6 +382,6 @@ if __name__ == '__main__':
     test = torch.rand([1, 3, 416, 416])
     y = model(test)
 
-    logger = utils.logger.Logger('./logs')
-    logger.add_graph(model, test)
-    logger.close()
+    writer = torch.utils.tensorboard.SummaryWriter('logs')
+    writer.add_graph(model, test)
+    writer.close()
