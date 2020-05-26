@@ -44,21 +44,13 @@ class ImageFolder(Dataset):
         self.img_size = img_size
 
     def __getitem__(self, index):
-        img_path = self.files[index % len(self.files)]
+        img_path = self.files[index]
 
-        # Extract image as PyTorch tensor
-        img = transforms.ToTensor()(Image.open(img_path).convert('RGB'))
-
-        # Handle images with less than three channels
-        if len(img.shape) != 3:
-            img = img.unsqueeze(0)
-            img = img.expand((3, img.shape[1:]))
-
-        # Pad to square resolution
-        img, _ = pad_to_square(img, 0)
-        # Resize
-        img = resize(img, self.img_size)
-
+        transform = transforms.Compose([
+            transforms.Resize((self.img_size, self.img_size)),
+            transforms.ToTensor()
+        ])
+        img = transform(Image.open(img_path).convert('RGB'))
         return img_path, img
 
     def __len__(self):
@@ -93,11 +85,6 @@ class ListDataset(Dataset):
 
         # Extract image as PyTorch tensor
         img = transforms.ToTensor()(Image.open(img_path).convert('RGB'))
-
-        # Handle images with less than three channels
-        if len(img.shape) != 3:
-            img = img.unsqueeze(0)
-            img = img.expand((3, img.shape[1:]))
 
         _, h, w = img.shape
         h_factor, w_factor = (h, w) if self.normalized_labels else (1, 1)
