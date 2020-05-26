@@ -69,13 +69,11 @@ colors = [cmap(i) for i in np.linspace(0, 1, 20)]
 
 os.makedirs(args.save_folder, exist_ok=True)
 
-# Iterate through images and save plot of detections
-for img_i, (path, detection) in enumerate(zip(img_paths, img_detections)):
+# Save result images
+for path, detection in tqdm.tqdm(zip(img_paths, img_detections), desc='Save images'):
 
     # Replace Windows path separator to Linux path separator
     path = path.replace('\\', '/')
-
-    print("(%d) Image: '%s'" % (img_i, path))
 
     # Create plot
     img = np.array(Image.open(path))
@@ -90,8 +88,6 @@ for img_i, (path, detection) in enumerate(zip(img_paths, img_detections)):
         n_cls_preds = len(unique_labels)
         bbox_colors = random.sample(colors, n_cls_preds)
         for x1, y1, x2, y2, conf, cls_conf, cls_pred in detection:
-            print("\tLabel: %s, Conf: %.5f" % (classes[int(cls_pred)], cls_conf.item()))
-
             box_w = x2 - x1
             box_h = y2 - y1
 
