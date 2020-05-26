@@ -41,19 +41,19 @@ if args.pretrained_weights.endswith('.pth'):
 else:
     model.load_darknet_weights(args.pretrained_weights)
 
-# Set in evaluation mode
-model.eval()
-
+# Set dataloader
 dataset = utils.datasets.ImageFolder(args.image_folder, img_size=args.img_size)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=False,
                                          num_workers=args.n_cpu)
 
+# Set in evaluation mode
+model.eval()
+
 img_paths = []  # Stores image paths
 img_detections = []  # Stores detections for each image index
-for batch_i, (paths, imgs) in enumerate(tqdm.tqdm(dataloader, desc='Batch')):
-    # Get detections
+for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
     with torch.no_grad():
         imgs = imgs.to(device)
         prediction = model(imgs)
@@ -70,7 +70,7 @@ colors = [cmap(i) for i in np.linspace(0, 1, 20)]
 os.makedirs(args.save_folder, exist_ok=True)
 
 # Iterate through images and save plot of detections
-for img_i, (path, detections) in enumerate(zip(img_paths, img_detections)):
+for img_i, (path, detection) in enumerate(zip(img_paths, img_detections)):
 
     # Replace Windows path separator to Linux path separator
     path = path.replace('\\', '/')
@@ -84,13 +84,13 @@ for img_i, (path, detections) in enumerate(zip(img_paths, img_detections)):
     ax.imshow(img)
 
     # Draw bounding boxes and labels of detections
-    if detections is not None:
+    if detection is not None:
         # Rescale boxes to original image
-        detections = rescale_boxes(detections, args.img_size, img.shape[:2])
-        unique_labels = detections[:, -1].cpu().unique()
+        detection = rescale_boxes(detection, args.img_size, img.shape[:2])
+        unique_labels = detection[:, -1].cpu().unique()
         n_cls_preds = len(unique_labels)
         bbox_colors = random.sample(colors, n_cls_preds)
-        for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
+        for x1, y1, x2, y2, conf, cls_conf, cls_pred in detection:
             print("\tLabel: %s, Conf: %.5f" % (classes[int(cls_pred)], cls_conf.item()))
 
             box_w = x2 - x1
