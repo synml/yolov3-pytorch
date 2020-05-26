@@ -62,7 +62,7 @@ class ImageFolder(Dataset):
 
 
 class ListDataset(Dataset):
-    def __init__(self, list_path: str, img_size=416, augment=True, multiscale=True, normalized_labels=True):
+    def __init__(self, list_path: str, img_size: int, augment=True, multiscale=True, normalized_labels=True):
         with open(list_path, 'r') as file:
             self.img_files = file.readlines()
 
@@ -132,6 +132,9 @@ class ListDataset(Dataset):
 
         return img_path, img, targets
 
+    def __len__(self):
+        return len(self.img_files)
+
     def collate_fn(self, batch):
         paths, imgs, targets = list(zip(*batch))
         # Remove empty placeholder targets
@@ -152,6 +155,3 @@ class ListDataset(Dataset):
         imgs = torch.stack([resize(img, self.img_size) for img in imgs])
         self.batch_count += 1
         return paths, imgs, targets
-
-    def __len__(self):
-        return len(self.img_files)
