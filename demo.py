@@ -6,7 +6,6 @@ import torch
 import torch.utils.data
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib.ticker import NullLocator
 import numpy as np
 from PIL import Image
 import tqdm
@@ -15,7 +14,6 @@ import model.yolov3
 import model.yolov3_proposed
 import utils.datasets
 import utils.utils
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
@@ -81,9 +79,8 @@ for img_i, (path, detection) in enumerate(zip(img_paths, img_detections)):
 
     # Create plot
     img = np.array(Image.open(path))
-    plt.figure()
-    fig, ax = plt.subplots(1)
-    ax.imshow(img)
+    plt.imshow(img)
+    ax = plt.gca()
 
     # Draw bounding boxes and labels of detections
     if detection is not None:
@@ -100,20 +97,15 @@ for img_i, (path, detection) in enumerate(zip(img_paths, img_detections)):
 
             color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
             # Create a Rectangle patch
-            bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=2, edgecolor=color, facecolor="none")
+            bbox = patches.Rectangle((x1, y1), box_w, box_h, fill=False, linewidth=1.5, edgecolor=color)
             # Add the bbox to the plot
             ax.add_patch(bbox)
             # Add label
-            plt.text(x1, y1,
-                     s=classes[int(cls_pred)],
-                     color="white",
-                     verticalalignment="top",
-                     bbox={"color": color, "pad": 0})
+            plt.text(x1, y1, s=classes[int(cls_pred)], color="white", bbox={"color": color, "pad": 0},
+                     fontsize=8, verticalalignment="top")
 
     # Save generated image with detections
     plt.axis("off")
-    plt.gca().xaxis.set_major_locator(NullLocator())
-    plt.gca().yaxis.set_major_locator(NullLocator())
     filename = path.split("/")[-1].split(".")[0]
-    plt.savefig("{}/{}.png".format(args.save_folder, filename), bbox_inches="tight", pad_inches=0.0)
+    plt.savefig("{}/{}.png".format(args.save_folder, filename), dpi=200, bbox_inches="tight", pad_inches=0.0)
     plt.close()
