@@ -10,7 +10,7 @@ import tqdm
 import model.yolov3
 import model.yolov3_proposed
 import utils.datasets
-from utils.utils import *
+import utils.utils
 from test import evaluate
 
 parser = argparse.ArgumentParser()
@@ -35,14 +35,14 @@ os.makedirs(log_dir, exist_ok=True)
 writer = torch.utils.tensorboard.SummaryWriter(log_dir)
 
 # Get data configuration
-data_config = parse_data_config(args.data_config)
+data_config = utils.utils.parse_data_config(args.data_config)
 train_path = data_config['train']
 valid_path = data_config['valid']
-class_names = load_classes(data_config['names'])
+class_names = utils.utils.load_classes(data_config['names'])
 
 # Initiate model
 model = model.yolov3.YOLOv3(args.img_size, int(data_config['classes'])).to(device)
-model.apply(init_weights_normal)
+model.apply(utils.utils.init_weights_normal)
 
 # If specified we start from checkpoint
 if args.pretrained_weights:

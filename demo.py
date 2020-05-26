@@ -7,13 +7,14 @@ import torch.utils.data
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
+import numpy as np
 from PIL import Image
 import tqdm
 
 import model.yolov3
 import model.yolov3_proposed
 import utils.datasets
-from utils.utils import *
+import utils.utils
 
 
 parser = argparse.ArgumentParser()
@@ -32,8 +33,8 @@ print(args)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-data_config = parse_data_config(args.data_config)
-classes = load_classes(data_config["names"])
+data_config = utils.utils.parse_data_config(args.data_config)
+classes = utils.utils.load_classes(data_config["names"])
 
 # Set up model
 model = model.yolov3.YOLOv3(args.img_size, int(data_config['classes'])).to(device)
@@ -58,7 +59,7 @@ for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
     with torch.no_grad():
         imgs = imgs.to(device)
         prediction = model(imgs)
-        prediction = non_max_suppression(prediction, args.conf_thres, args.nms_thres)
+        prediction = utils.utils.non_max_suppression(prediction, args.conf_thres, args.nms_thres)
 
     # Save image and detections
     img_paths.extend(paths)
@@ -87,7 +88,7 @@ for img_i, (path, detection) in enumerate(zip(img_paths, img_detections)):
     # Draw bounding boxes and labels of detections
     if detection is not None:
         # Rescale boxes to original image
-        detection = rescale_boxes(detection, args.img_size, img.shape[:2])
+        detection = utils.utils.rescale_boxes(detection, args.img_size, img.shape[:2])
         unique_labels = detection[:, -1].cpu().unique()
         n_cls_preds = len(unique_labels)
         bbox_colors = random.sample(colors, n_cls_preds)

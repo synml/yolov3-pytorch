@@ -5,12 +5,13 @@ import time
 
 import torch
 import torch.utils.data
+import numpy as np
 import tqdm
 
 import model.yolov3
 import model.yolov3_proposed
 import utils.datasets
-from utils.utils import *
+import utils.utils
 
 
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers, device):
@@ -34,22 +35,22 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         # Extract labels
         labels += targets[:, 1].tolist()
         # Rescale target
-        targets[:, 2:] = xywh2xyxy(targets[:, 2:])
+        targets[:, 2:] = utils.utils.xywh2xyxy(targets[:, 2:])
         targets[:, 2:] *= img_size
 
         with torch.no_grad():
             imgs = imgs.to(device)
             outputs = model(imgs)
-            outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
+            outputs = utils.utils.non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
-        sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
+        sample_metrics += utils.utils.get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
 
     # Concatenate sample statistics
     if len(sample_metrics) == 0:
         true_positives, pred_scores, pred_labels = np.array([]), np.array([]), np.array([])
     else:
         true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
-    precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
+    precision, recall, AP, f1, ap_class = utils.utils.ap_per_class(true_positives, pred_scores, pred_labels, labels)
 
     return precision, recall, AP, f1, ap_class
 
@@ -70,9 +71,9 @@ if __name__ == "__main__":
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    data_config = parse_data_config(args.data_config)
+    data_config = utils.utils.parse_data_config(args.data_config)
     valid_path = data_config['valid']
-    class_names = load_classes(data_config['names'])
+    class_names = utils.utils.load_classes(data_config['names'])
 
     # Initiate model
     model = model.yolov3.YOLOv3(args.img_size, int(data_config['classes'])).to(device)
