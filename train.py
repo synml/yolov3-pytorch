@@ -106,7 +106,8 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
                                                    nms_thres=0.5,
                                                    img_size=args.img_size,
                                                    batch_size=args.batch_size,
-                                                   num_workers=args.n_cpu)
+                                                   num_workers=args.n_cpu,
+                                                   device=device)
 
     writer.add_scalar('val_precision', precision.mean(), epoch)
     writer.add_scalar('val_recall', recall.mean(), epoch)

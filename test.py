@@ -13,16 +13,16 @@ import utils.parse_config
 from utils.utils import *
 
 
-def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers):
+def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers, device):
     model.eval()
 
     # Get dataloader
     dataset = utils.datasets.ListDataset(path, img_size=img_size, augment=False, multiscale=False)
-    dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, collate_fn=dataset.collate_fn
-    )
-
-    Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+    dataloader = torch.utils.data.DataLoader(dataset,
+                                             batch_size=batch_size,
+                                             shuffle=False,
+                                             num_workers=num_workers,
+                                             collate_fn=dataset.collate_fn)
 
     labels = []
     sample_metrics = []  # List of tuples (TP, confs, pred)
@@ -37,9 +37,8 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         targets[:, 2:] = xywh2xyxy(targets[:, 2:])
         targets[:, 2:] *= img_size
 
-        imgs = torch.autograd.Variable(imgs.type(Tensor), requires_grad=False)
-
         with torch.no_grad():
+            imgs = imgs.to(device)
             outputs = model(imgs)
             outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
@@ -91,7 +90,8 @@ if __name__ == "__main__":
         nms_thres=args.nms_thres,
         img_size=args.img_size,
         batch_size=args.batch_size,
-        num_workers=args.n_cpu
+        num_workers=args.n_cpu,
+        device=device
     )
 
     # Print AP and mAP.
