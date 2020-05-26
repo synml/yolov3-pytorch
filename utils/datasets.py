@@ -14,14 +14,22 @@ from utils.augmentations import horisontal_flip
 
 def pad_to_square(img, pad_value):
     c, h, w = img.shape
-    dim_diff = np.abs(h - w)
-    # (upper / left) padding and (lower / right) padding
-    pad1, pad2 = dim_diff // 2, dim_diff - dim_diff // 2
-    # Determine padding
-    pad = [0, 0, pad1, pad2] if h <= w else [pad1, pad2, 0, 0]
-    # Add padding
-    img = F.pad(img, pad, "constant", value=pad_value)
+    
+    # 너비와 높이의 차
+    difference = abs(h - w)
 
+    # (top, bottom) padding or (left, right) padding
+    if h <= w:
+        top = difference // 2
+        bottom = difference - difference // 2
+        pad = [0, 0, top, bottom]
+    else:
+        left = difference // 2
+        right = difference - difference // 2
+        pad = [left, right, 0, 0]
+
+    # Add padding
+    img = F.pad(img, pad, mode="constant", value=pad_value)
     return img, pad
 
 
