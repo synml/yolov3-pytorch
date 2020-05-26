@@ -26,7 +26,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
     labels = []
     sample_metrics = []  # List of tuples (TP, confs, pred)
-    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects", leave=False)):
+    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Detecting objects', leave=False)):
 
         if targets is None:
             continue
@@ -69,20 +69,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     data_config = utils.parse_config.parse_data_config(args.data_config)
-    valid_path = data_config["valid"]
-    class_names = load_classes(data_config["names"])
+    valid_path = data_config['valid']
+    class_names = load_classes(data_config['names'])
 
     # Initiate model
     model = YOLOv3(args.img_size, int(data_config['classes'])).to(device)
-    if args.pretrained_weights.endswith(".pth"):
+    if args.pretrained_weights.endswith('.pth'):
         model.load_state_dict(torch.load(args.pretrained_weights))
     else:
         model.load_darknet_weights(args.pretrained_weights)
 
-    print("Compute mAP...")
+    print('Compute mAP...')
     precision, recall, AP, f1, ap_class = evaluate(
         model,
         path=valid_path,
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     )
 
     # Print AP and mAP.
-    print("Average Precisions:")
+    print('Average Precisions:')
     for i, class_num in enumerate(ap_class):
         print('\tClass {} ({}) - AP: {:.02f}'.format(class_num, class_names[class_num], AP[i] * 100))
     print('mAP: {:.02f}'.format(AP.mean() * 100))
