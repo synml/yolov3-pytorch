@@ -54,7 +54,7 @@ model.eval()
 
 # Detect objects
 img_paths = []  # Stores image paths
-img_detections = []  # Stores detections for each image index
+img_predictions = []  # Stores predictions for each image index
 for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
     with torch.no_grad():
         imgs = imgs.to(device)
@@ -63,7 +63,7 @@ for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
 
     # Save image and detections
     img_paths.extend(paths)
-    img_detections.extend(prediction)
+    img_predictions.extend(prediction)
 
 # Bounding-box colors
 cmap = np.array(plt.cm.get_cmap('Paired').colors)
@@ -71,16 +71,16 @@ cmap_rgb: list = np.multiply(cmap, 255).astype(np.int32).tolist()
 
 # Save result images
 os.makedirs(args.save_folder, exist_ok=True)
-for path, detection in tqdm.tqdm(zip(img_paths, img_detections), desc='Save images', total=dataset.__len__()):
+for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save images', total=dataset.__len__()):
     # Open original image
     image = Image.open(path)
     draw = ImageDraw.Draw(image)
 
-    if detection is not None:
+    if prediction is not None:
         # Rescale boxes to original image
-        detection = utils.utils.rescale_boxes(detection, args.img_size, image.size)
+        prediction = utils.utils.rescale_boxes(prediction, args.img_size, image.size)
 
-        for x1, y1, x2, y2, conf, cls_conf, cls_pred in detection:
+        for x1, y1, x2, y2, conf, cls_conf, cls_pred in prediction:
             # Set bounding box color
             color = tuple(cmap_rgb[int(cls_pred) % len(cmap_rgb)])
 
