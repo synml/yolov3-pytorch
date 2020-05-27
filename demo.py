@@ -65,11 +65,12 @@ for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
     img_detections.extend(prediction)
 
 # Bounding-box colors
-cmap = plt.cm.get_cmap('rainbow', num_classes)
+cmap = plt.cm.get_cmap('tab20')
+cmap_list = [cmap(i) for i in range(cmap.N)]
 
 # Save result images
 os.makedirs(args.save_folder, exist_ok=True)
-for path, detection in tqdm.tqdm(zip(img_paths, img_detections), desc='Save images'):
+for path, detection in tqdm.tqdm(zip(img_paths, img_detections), desc='Save images', total=dataset.__len__()):
     # Open original image
     image = Image.open(path)
     draw = ImageDraw.Draw(image)
