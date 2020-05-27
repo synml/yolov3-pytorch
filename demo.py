@@ -4,6 +4,7 @@ import os
 import torch
 import torch.utils.data
 import matplotlib.pyplot as plt
+import numpy as np
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
@@ -65,8 +66,8 @@ for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
     img_detections.extend(prediction)
 
 # Bounding-box colors
-cmap = plt.cm.get_cmap('tab20')
-cmap_list = [cmap(i) for i in range(cmap.N)]
+cmap = np.array(plt.cm.get_cmap('Paired').colors)
+cmap_rgb: list = np.multiply(cmap, 255).astype(np.int32).tolist()
 
 # Save result images
 os.makedirs(args.save_folder, exist_ok=True)
@@ -80,15 +81,18 @@ for path, detection in tqdm.tqdm(zip(img_paths, img_detections), desc='Save imag
         detection = utils.utils.rescale_boxes(detection, args.img_size, image.size)
 
         for x1, y1, x2, y2, conf, cls_conf, cls_pred in detection:
+            # Set bounding box color
+            color = tuple(cmap_rgb[int(cls_pred) % len(cmap_rgb)])
+
             # Draw bounding box
-            draw.rectangle(((x1, y1), (x2, y2)), outline=(0, 0, 255), width=2)
+            draw.rectangle(((x1, y1), (x2, y2)), outline=color, width=2)
 
             # Draw label
             text = '{}{:.3f}'.format(class_names[int(cls_pred)], cls_conf.item())
             font = ImageFont.truetype('calibri.ttf', size=12)
             text_width, text_height = font.getsize(text)
-            draw.rectangle(((x1, y1), (x1 + text_width, y1 + text_height)), fill=(0, 0, 255))
-            draw.text((x1, y1), text, fill=(255, 255, 255), font=font)
+            draw.rectangle(((x1, y1), (x1 + text_width, y1 + text_height)), fill=color)
+            draw.text((x1, y1), text, fill=(0, 0, 0), font=font)
 
     # Save result image
     filename = path.split("/")[-1].split(".")[0]
