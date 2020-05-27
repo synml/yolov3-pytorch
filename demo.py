@@ -1,11 +1,9 @@
 import argparse
 import os
-import random
 
 import torch
 import torch.utils.data
 import matplotlib.pyplot as plt
-import numpy as np
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
@@ -30,13 +28,14 @@ parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads 
 args = parser.parse_args()
 print(args)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 data_config = utils.utils.parse_data_config(args.data_config)
-classes = utils.utils.load_classes(data_config["names"])
+num_classes = int(data_config['classes'])
+class_names = utils.utils.load_classes(data_config['names'])
 
 # Set up model
-model = model.yolov3.YOLOv3(args.img_size, int(data_config['classes'])).to(device)
+model = model.yolov3.YOLOv3(args.img_size, num_classes).to(device)
 if args.pretrained_weights.endswith('.pth'):
     model.load_state_dict(torch.load(args.pretrained_weights))
 else:
@@ -52,6 +51,7 @@ dataloader = torch.utils.data.DataLoader(dataset,
 # Set in evaluation mode
 model.eval()
 
+# Detect objects
 img_paths = []  # Stores image paths
 img_detections = []  # Stores detections for each image index
 for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
@@ -65,37 +65,25 @@ for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
     img_detections.extend(prediction)
 
 # Bounding-box colors
-cmap = plt.get_cmap("tab20b")
-colors = [cmap(i) for i in np.linspace(0, 1, 20)]
-
-os.makedirs(args.save_folder, exist_ok=True)
+cmap = plt.cm.get_cmap('rainbow', num_classes)
 
 # Save result images
+os.makedirs(args.save_folder, exist_ok=True)
 for path, detection in tqdm.tqdm(zip(img_paths, img_detections), desc='Save images'):
-
-    # Replace Windows path separator to Linux path separator
-    path = path.replace('\\', '/')
-
     # Open original image
     image = Image.open(path)
     draw = ImageDraw.Draw(image)
 
-    # Draw bounding boxes and labels of detections
     if detection is not None:
         # Rescale boxes to original image
         detection = utils.utils.rescale_boxes(detection, args.img_size, image.size)
 
-        unique_labels = detection[:, -1].cpu().unique()
-        n_cls_preds = len(unique_labels)
-        bbox_colors = random.sample(colors, n_cls_preds)
         for x1, y1, x2, y2, conf, cls_conf, cls_pred in detection:
-            color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
-
             # Draw bounding box
             draw.rectangle(((x1, y1), (x2, y2)), outline=(0, 0, 255), width=2)
 
             # Draw label
-            text = '{}{:.3f}'.format(classes[int(cls_pred)], cls_conf.item())
+            text = '{}{:.3f}'.format(class_names[int(cls_pred)], cls_conf.item())
             font = ImageFont.truetype('calibri.ttf', size=12)
             text_width, text_height = font.getsize(text)
             draw.rectangle(((x1, y1), (x1 + text_width, y1 + text_height)), fill=(0, 0, 255))

@@ -73,10 +73,11 @@ if __name__ == "__main__":
 
     data_config = utils.utils.parse_data_config(args.data_config)
     valid_path = data_config['valid']
+    num_classes = int(data_config['classes'])
     class_names = utils.utils.load_classes(data_config['names'])
 
     # Initiate model
-    model = model.yolov3.YOLOv3(args.img_size, int(data_config['classes'])).to(device)
+    model = model.yolov3.YOLOv3(args.img_size, num_classes).to(device)
     if args.pretrained_weights.endswith('.pth'):
         model.load_state_dict(torch.load(args.pretrained_weights))
     else:

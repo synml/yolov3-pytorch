@@ -44,11 +44,14 @@ def resize(image, size):
 
 class ImageFolder(Dataset):
     def __init__(self, folder_path: str, img_size: int):
-        self.files = sorted(glob.glob('%s/*.*' % folder_path))
+        self.files = sorted(glob.glob('{}/*.*'.format(folder_path)))
         self.img_size = img_size
 
     def __getitem__(self, index):
         img_path = self.files[index]
+
+        # Replace Windows path separator to Linux path separator
+        img_path = img_path.replace('\\', '/')
 
         transform = transforms.Compose([
             transforms.Resize((self.img_size, self.img_size)),
