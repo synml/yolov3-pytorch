@@ -37,10 +37,10 @@ def init_weights_normal(m):
 
 def rescale_boxes(prediction, input_size: int, original_size: tuple):
     """ Rescale bounding boxes to the original shape """
-    ori_w, ori_h = original_size
+    ow, oh = original_size
     resize_ratio = input_size / max(original_size)
 
-    if ori_w > ori_h:
+    if ow > oh:
         resized_w = input_size
         resized_h = round(min(original_size) * resize_ratio)
         pad_x = 0
@@ -62,14 +62,14 @@ def rescale_boxes(prediction, input_size: int, original_size: tuple):
         for k in range(0, 3, 2):
             if prediction[i][k] < 0:
                 prediction[i][k] = 0
-            elif prediction[i][k] > ori_w:
-                prediction[i][k] = ori_w
+            elif prediction[i][k] > ow:
+                prediction[i][k] = ow
 
         for k in range(1, 4, 2):
             if prediction[i][k] < 0:
                 prediction[i][k] = 0
-            elif prediction[i][k] > ori_h:
-                prediction[i][k] = ori_h
+            elif prediction[i][k] > oh:
+                prediction[i][k] = oh
 
     return prediction
 
