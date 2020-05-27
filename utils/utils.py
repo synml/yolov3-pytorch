@@ -35,8 +35,8 @@ def init_weights_normal(m):
         torch.nn.init.constant_(m.bias.data, 0.0)
 
 
-def rescale_box(prediction, input_size: int, original_size: tuple):
-    """ Rescale bounding box to the original shape """
+def rescale_boxes(prediction, input_size: int, original_size: tuple):
+    """ Rescale bounding boxes to the original shape """
     ori_w, ori_h = original_size
     resize_ratio = input_size / max(original_size)
 
@@ -51,11 +51,26 @@ def rescale_box(prediction, input_size: int, original_size: tuple):
         pad_x = abs(resized_w - resized_h)
         pad_y = 0
 
-    # Rescale bounding box
+    # Rescale bounding boxes
     prediction[:, 0] = (prediction[:, 0] - pad_x // 2) / resize_ratio
     prediction[:, 1] = (prediction[:, 1] - pad_y // 2) / resize_ratio
     prediction[:, 2] = (prediction[:, 2] - pad_x // 2) / resize_ratio
     prediction[:, 3] = (prediction[:, 3] - pad_y // 2) / resize_ratio
+
+    # 예측 결과가 원본 이미지의 좌표를 넘어가지 못하게 한다.
+    for i in range(prediction.shape[0]):
+        for k in range(0, 3, 2):
+            if prediction[i][k] < 0:
+                prediction[i][k] = 0
+            elif prediction[i][k] > ori_w:
+                prediction[i][k] = ori_w
+
+        for k in range(1, 4, 2):
+            if prediction[i][k] < 0:
+                prediction[i][k] = 0
+            elif prediction[i][k] > ori_h:
+                prediction[i][k] = ori_h
+
     return prediction
 
 
