@@ -5,9 +5,10 @@ import random
 import torch
 import torch.utils.data
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import numpy as np
 from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 import tqdm
 
 import model.yolov3
@@ -75,33 +76,31 @@ for path, detection in tqdm.tqdm(zip(img_paths, img_detections), desc='Save imag
     # Replace Windows path separator to Linux path separator
     path = path.replace('\\', '/')
 
-    # Create plot
-    img = np.array(Image.open(path))
-    plt.imshow(img)
-    ax = plt.gca()
+    # Open original image
+    image = Image.open(path)
+    draw = ImageDraw.Draw(image)
 
     # Draw bounding boxes and labels of detections
     if detection is not None:
         # Rescale boxes to original image
-        detection = utils.utils.rescale_boxes(detection, args.img_size, img.shape[:2])
+        detection = utils.utils.rescale_boxes(detection, args.img_size, image.size)
+
         unique_labels = detection[:, -1].cpu().unique()
         n_cls_preds = len(unique_labels)
         bbox_colors = random.sample(colors, n_cls_preds)
         for x1, y1, x2, y2, conf, cls_conf, cls_pred in detection:
-            box_w = x2 - x1
-            box_h = y2 - y1
-
             color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
-            # Create a Rectangle patch
-            bbox = patches.Rectangle((x1, y1), box_w, box_h, fill=False, linewidth=1.5, edgecolor=color)
-            # Add the bbox to the plot
-            ax.add_patch(bbox)
-            # Add label
-            plt.text(x1, y1, s=classes[int(cls_pred)], color="white", bbox={"color": color, "pad": 0},
-                     fontsize=8, verticalalignment="top")
 
-    # Save generated image with detections
-    plt.axis("off")
+            # Draw bounding box
+            draw.rectangle(((x1, y1), (x2, y2)), outline=(0, 0, 255), width=2)
+
+            # Draw label
+            text = '{}{:.3f}'.format(classes[int(cls_pred)], cls_conf.item())
+            font = ImageFont.truetype('calibri.ttf', size=12)
+            text_width, text_height = font.getsize(text)
+            draw.rectangle(((x1, y1), (x1 + text_width, y1 + text_height)), fill=(0, 0, 255))
+            draw.text((x1, y1), text, fill=(255, 255, 255), font=font)
+
+    # Save result image
     filename = path.split("/")[-1].split(".")[0]
-    plt.savefig("{}/{}.png".format(args.save_folder, filename), dpi=200, bbox_inches="tight", pad_inches=0.0)
-    plt.close()
+    image.save("{}/{}.jpg".format(args.save_folder, filename))
