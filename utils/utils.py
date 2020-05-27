@@ -35,21 +35,28 @@ def init_weights_normal(m):
         torch.nn.init.constant_(m.bias.data, 0.0)
 
 
-def rescale_boxes(boxes, current_dim, original_shape):
-    """ Rescales bounding boxes to the original shape """
-    orig_w, orig_h = original_shape
-    # The amount of padding that was added
-    pad_x = max(orig_h - orig_w, 0) * (current_dim / max(original_shape))
-    pad_y = max(orig_w - orig_h, 0) * (current_dim / max(original_shape))
-    # Image height and width after padding is removed
-    unpad_h = current_dim - pad_y
-    unpad_w = current_dim - pad_x
-    # Rescale bounding boxes to dimension of original image
-    boxes[:, 0] = ((boxes[:, 0] - pad_x // 2) / unpad_w) * orig_w
-    boxes[:, 1] = ((boxes[:, 1] - pad_y // 2) / unpad_h) * orig_h
-    boxes[:, 2] = ((boxes[:, 2] - pad_x // 2) / unpad_w) * orig_w
-    boxes[:, 3] = ((boxes[:, 3] - pad_y // 2) / unpad_h) * orig_h
-    return boxes
+def rescale_box(prediction, input_size: int, original_size: tuple):
+    """ Rescale bounding box to the original shape """
+    ori_w, ori_h = original_size
+    resize_ratio = input_size / max(original_size)
+
+    if ori_w > ori_h:
+        resized_w = input_size
+        resized_h = round(min(original_size) * resize_ratio)
+        pad_x = 0
+        pad_y = abs(resized_w - resized_h)
+    else:
+        resized_w = round(min(original_size) * resize_ratio)
+        resized_h = input_size
+        pad_x = abs(resized_w - resized_h)
+        pad_y = 0
+
+    # Rescale bounding box
+    prediction[:, 0] = (prediction[:, 0] - pad_x // 2) / resize_ratio
+    prediction[:, 1] = (prediction[:, 1] - pad_y // 2) / resize_ratio
+    prediction[:, 2] = (prediction[:, 2] - pad_x // 2) / resize_ratio
+    prediction[:, 3] = (prediction[:, 3] - pad_y // 2) / resize_ratio
+    return prediction
 
 
 def xywh2xyxy(x):
