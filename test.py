@@ -18,7 +18,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     model.eval()
 
     # 데이터셋, 데이터로더 설정
-    dataset = utils.datasets.YOLODataset(path, img_size, rescale_bbox=False, augmentation=False, multiscale=False)
+    dataset = utils.datasets.YOLODataset(path, img_size, augmentation=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=batch_size,
                                              shuffle=False,

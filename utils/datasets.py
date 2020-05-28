@@ -41,7 +41,7 @@ class ImageFolder(Dataset):
 
 
 class YOLODataset(Dataset):
-    def __init__(self, list_path: str, img_size: int, rescale_bbox: bool, augmentation: bool, multiscale: bool):
+    def __init__(self, list_path: str, img_size: int, augmentation: bool, multiscale: bool):
         with open(list_path, 'r') as f:
             self.image_paths = f.readlines()
         for i in range(len(self.image_paths)):
@@ -50,7 +50,6 @@ class YOLODataset(Dataset):
         self.target_paths = [path.replace('images', 'labels').replace('.png', '.txt').replace('.jpg', '.txt')
                                  .replace('JPEGImages', 'labels') for path in self.image_paths]
         self.img_size = img_size
-        self.rescale_bbox = rescale_bbox
         self.augmentation = augmentation
         self.multiscale = multiscale
 
@@ -73,8 +72,7 @@ class YOLODataset(Dataset):
         targets = torch.from_numpy(np.loadtxt(target_path).reshape(-1, 5))
 
         # Rescale bounding boxes to the YOLO input shape
-        if self.rescale_bbox:
-            targets = utils.utils.rescale_boxes_yolo(targets, original_size, self.img_size)
+        targets = utils.utils.rescale_boxes_yolo(targets, original_size, self.img_size)
 
         # Apply augmentations
         if self.augmentation:
@@ -87,15 +85,15 @@ class YOLODataset(Dataset):
         return len(self.image_paths)
 
     def collate_fn(self, batch):
-        imgs, targets = list(zip(*batch))
+        images, targets = list(zip(*batch))
 
-        batch_size = len(imgs)
-        channel = imgs[0].shape[0]
-        row = imgs[0].shape[1]
-        col = imgs[0].shape[2]
-        imgs_batch = torch.zeros(batch_size, channel, row, col)
+        batch_size = len(images)
+        channel = images[0].shape[0]
+        row = images[0].shape[1]
+        col = images[0].shape[2]
+        images_batch = torch.zeros(batch_size, channel, row, col)
         for i in range(batch_size):
-            imgs_batch[i] = imgs[i]
+            images_batch[i] = images[i]
 
         targets = torch.cat(targets, 0)
-        return imgs_batch, targets
+        return images_batch, targets

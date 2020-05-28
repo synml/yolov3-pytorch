@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import tqdm
+import copy
 
 
 def parse_data_config(path: str):
@@ -79,11 +80,22 @@ def rescale_boxes_yolo(targets, original_size: tuple, rescaled_size: int):
     ow, oh = original_size
     resize_ratio = rescaled_size / max(original_size)
 
-    # (cx, cy, w, h) -> (x1, y1, x2, y2) | 비율값 -> 원본 이미지 좌표값
-    targets[:, 1] = ow * (targets[:, 1] - targets[:, 3] / 2)
-    targets[:, 2] = oh * (targets[:, 2] - targets[:, 4] / 2)
-    targets[:, 3] = ow * (targets[:, 1] + targets[:, 3] / 2)
-    targets[:, 4] = oh * (targets[:, 2] + targets[:, 4] / 2)
+    # (cx, cy, w, h) -> (x1, y1, x2, y2)
+    temp = copy.deepcopy(targets)
+    temp[:, 1] = targets[:, 1] - targets[:, 3] / 2
+    temp[:, 2] = targets[:, 2] - targets[:, 4] / 2
+    temp[:, 3] = targets[:, 1] + targets[:, 3] / 2
+    temp[:, 4] = targets[:, 2] + targets[:, 4] / 2
+
+    # 비율값 -> 원본 이미지 좌표값
+    temp[:, 1] *= ow
+    temp[:, 2] *= oh
+    temp[:, 3] *= ow
+    temp[:, 4] *= oh
+    
+    # 각 좌표에 1 더해주기
+    temp[:, 1:] += 1
+    targets = temp
 
     # 적용된 패딩 계산
     if ow > oh:
@@ -104,10 +116,12 @@ def rescale_boxes_yolo(targets, original_size: tuple, rescaled_size: int):
     targets[:, 4] = (targets[:, 4] + pad_y // 2) * resize_ratio
 
     # (x1, y1, x2, y2) -> (cx, cy, w, h)
-    targets[:, 3] = targets[:, 3] - targets[:, 1]
-    targets[:, 4] = targets[:, 4] - targets[:, 2]
-    targets[:, 1] = targets[:, 1] + targets[:, 3] / 2
-    targets[:, 2] = targets[:, 2] + targets[:, 4] / 2
+    temp = copy.deepcopy(targets)
+    temp[:, 1] = targets[:, 1] + targets[:, 3] / 2
+    temp[:, 2] = targets[:, 2] + targets[:, 4] / 2
+    temp[:, 3] = targets[:, 3] - targets[:, 1]
+    temp[:, 4] = targets[:, 4] - targets[:, 2]
+    targets = temp
 
     return targets
 
