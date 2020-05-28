@@ -18,7 +18,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     model.eval()
 
     # 데이터셋, 데이터로더 설정
-    dataset = utils.datasets.YOLODataset(path, img_size=img_size, augmentation=False, multiscale=False)
+    dataset = utils.datasets.YOLODataset(path, img_size, rescale_bbox=False, augmentation=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=batch_size,
                                              shuffle=False,
@@ -28,10 +28,6 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     labels = []
     sample_metrics = []  # List of tuples (TP, confs, pred)
     for batch_i, (imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Detecting objects', leave=False)):
-
-        if targets is None:
-            continue
-
         # Extract labels
         labels += targets[:, 1].tolist()
         # Rescale target

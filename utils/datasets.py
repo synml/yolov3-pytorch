@@ -18,11 +18,6 @@ def horisontal_flip(images, targets):
     return images, targets
 
 
-def resize(image, size):
-    image = F.interpolate(image.unsqueeze(0), size=size, mode='bilinear', align_corners=True).squeeze(0)
-    return image
-
-
 class ImageFolder(Dataset):
     def __init__(self, folder_path: str, img_size: int):
         self.image_paths = sorted(glob.glob('{}/*.*'.format(folder_path)))
@@ -46,7 +41,7 @@ class ImageFolder(Dataset):
 
 
 class YOLODataset(Dataset):
-    def __init__(self, list_path: str, img_size: int, augmentation: bool, multiscale: bool):
+    def __init__(self, list_path: str, img_size: int, rescale_bbox: bool, augmentation: bool, multiscale: bool):
         with open(list_path, 'r') as f:
             self.image_paths = f.readlines()
         for i in range(len(self.image_paths)):
@@ -55,12 +50,9 @@ class YOLODataset(Dataset):
         self.target_paths = [path.replace('images', 'labels').replace('.png', '.txt').replace('.jpg', '.txt')
                                  .replace('JPEGImages', 'labels') for path in self.image_paths]
         self.img_size = img_size
-        self.max_objects = 100
+        self.rescale_bbox = rescale_bbox
         self.augmentation = augmentation
         self.multiscale = multiscale
-        self.min_size = self.img_size - 3 * 32
-        self.max_size = self.img_size + 3 * 32
-        self.batch_count = 0
 
     def __getitem__(self, index):
         # 1. Image
@@ -81,7 +73,8 @@ class YOLODataset(Dataset):
         targets = torch.from_numpy(np.loadtxt(target_path).reshape(-1, 5))
 
         # Rescale bounding boxes to the YOLO input shape
-        targets = utils.utils.rescale_boxes_yolo(targets, original_size, self.img_size)
+        if self.rescale_bbox:
+            targets = utils.utils.rescale_boxes_yolo(targets, original_size, self.img_size)
 
         # Apply augmentations
         if self.augmentation:
@@ -94,22 +87,11 @@ class YOLODataset(Dataset):
         return len(self.image_paths)
 
     def collate_fn(self, batch):
-        paths, imgs, targets = list(zip(*batch))
-        # Remove empty placeholder targets
-        targets = [boxes for boxes in targets if boxes is not None]
+        imgs, targets = list(zip(*batch))
+
         # Add sample index to targets
         for i, boxes in enumerate(targets):
             boxes[:, 0] = i
 
-        try:
-            targets = torch.cat(targets, 0)
-        except RuntimeError:
-            targets = None  # No boxes for an image
-
-        # Selects new image size every tenth batch
-        if self.multiscale and self.batch_count % 10 == 0:
-            self.img_size = random.choice(range(self.min_size, self.max_size + 1, 32))
-        # Resize images to input shape
-        imgs = torch.stack([resize(img, self.img_size) for img in imgs])
-        self.batch_count += 1
-        return paths, imgs, targets
+        targets = torch.cat(targets, 0)
+        return imgs, targets
