@@ -34,25 +34,22 @@ log_dir = os.path.join('logs', now)
 os.makedirs(log_dir, exist_ok=True)
 writer = torch.utils.tensorboard.SummaryWriter(log_dir)
 
-# Get data configuration
+# 데이터셋 설정값을 가져오기
 data_config = utils.utils.parse_data_config(args.data_config)
 train_path = data_config['train']
 valid_path = data_config['valid']
 num_classes = int(data_config['classes'])
 class_names = utils.utils.load_classes(data_config['names'])
 
-# Initiate model
+# 모델 준비하기
 model = model.yolov3.YOLOv3(args.img_size, num_classes).to(device)
 model.apply(utils.utils.init_weights_normal)
+if args.pretrained_weights.endswith('.pth'):
+    model.load_state_dict(torch.load(args.pretrained_weights))
+else:
+    model.load_darknet_weights(args.pretrained_weights)
 
-# If specified we start from checkpoint
-if args.pretrained_weights:
-    if args.pretrained_weights.endswith('.pth'):
-        model.load_state_dict(torch.load(args.pretrained_weights))
-    else:
-        model.load_darknet_weights(args.pretrained_weights)
-
-# Set dataloader
+# 데이터셋, 데이터로더 설정
 dataset = utils.datasets.ListDataset(train_path, args.img_size, augmentation=True, multiscale=args.multiscale_training)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
@@ -61,45 +58,50 @@ dataloader = torch.utils.data.DataLoader(dataset,
                                          pin_memory=True,
                                          collate_fn=dataset.collate_fn)
 
-# Set optimizer
+# optimizer 설정
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-# Set learning rate scheduler
+# learning rate scheduler 설정
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=9, gamma=0.8)
 
-# Set printing current batch loss tqdm
+# 현재 배치 손실값을 출력하는 tqdm 설정
 loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
 
-# Training code.
+# Train code.
 for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
+    # 모델을 train mode로 설정
     model.train()
-
+    
+    # 1 epoch의 각 배치에서 처리하는 코드
     for batch_idx, (imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Batch', leave=False)):
         step = len(dataloader) * epoch + batch_idx
-
+        
+        # 이미지와 정답 정보를 GPU로 복사
         imgs = imgs.to(device)
         targets = targets.to(device)
 
+        # 순전파 (forward), 역전파 (backward)
         loss, outputs = model(imgs, targets)
         loss.backward()
 
-        # Accumulates gradient before each step
+        # 기울기 누적 (Accumulate gradient)
         if step % args.gradient_accumulations == 0:
             optimizer.step()
             optimizer.zero_grad()
 
-        # Print total loss
+        # 총 손실값 출력
         loss_log.set_description_str('Loss: {:.6f}'.format(loss.item()))
 
-        # Tensorboard logging
+        # Tensorboard에 훈련 과정 기록
         tensorboard_log = []
         for i, yolo_layer in enumerate(model.yolo_layers):
             writer.add_scalar('layer_loss_{}'.format(i + 1), yolo_layer.metrics['layer_loss'], step)
         writer.add_scalar('total_loss', loss.item(), step)
-
+    
+    # lr scheduler의 step을 진행
     scheduler.step()
 
-    # Evaluate the model on the validation set
+    # 검증 데이터셋으로 모델을 평가
     precision, recall, AP, f1, ap_class = evaluate(model,
                                                    path=valid_path,
                                                    iou_thres=0.5,
@@ -109,13 +111,14 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
                                                    batch_size=args.batch_size,
                                                    num_workers=args.n_cpu,
                                                    device=device)
-
+    
+    # Tensorboard에 평가 결과 기록
     writer.add_scalar('val_precision', precision.mean(), epoch)
     writer.add_scalar('val_recall', recall.mean(), epoch)
     writer.add_scalar('val_mAP', AP.mean(), epoch)
     writer.add_scalar('val_f1', f1.mean(), epoch)
 
-    # Save checkpoint file
+    # checkpoint file 저장
     save_dir = os.path.join('checkpoints', now)
     os.makedirs(save_dir, exist_ok=True)
     dataset_name = os.path.split(args.data_config)[-1].split('.')[0]

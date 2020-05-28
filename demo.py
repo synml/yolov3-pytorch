@@ -50,7 +50,7 @@ dataloader = torch.utils.data.DataLoader(dataset,
                                          shuffle=False,
                                          num_workers=args.n_cpu)
 
-# evaluation mode로 설정
+# 모델을 evaluation mode로 설정
 model.eval()
 
 # 객체를 검출하는 코드
