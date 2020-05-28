@@ -4,7 +4,7 @@ import tqdm
 
 
 def parse_data_config(path: str):
-    """Parses the data configuration file"""
+    """ 데이터셋 설정 파일을 parse한다. """
     options = {}
     with open(path, 'r') as f:
         lines = f.readlines()
@@ -16,7 +16,7 @@ def parse_data_config(path: str):
 
 
 def load_classes(path: str):
-    """ Loads class labels at path """
+    """ 클래스 이름을 로드한다. """
     with open(path, "r") as f:
         names = f.readlines()
     for i in range(len(names)):
@@ -25,6 +25,7 @@ def load_classes(path: str):
 
 
 def init_weights_normal(m):
+    """ 정규분포형으로 가중치를 초기화한다. """
     classname = m.__class__.__name__
     if classname.find("Conv") != -1:
         torch.nn.init.kaiming_normal_(m.weight.data, 0.1)
@@ -34,10 +35,11 @@ def init_weights_normal(m):
 
 
 def rescale_boxes_original(prediction, rescaled_size: int, original_size: tuple):
-    """ Rescale bounding boxes to the original shape """
+    """ Rescale bounding boxes to the original shape. """
     ow, oh = original_size
     resize_ratio = rescaled_size / max(original_size)
 
+    # 적용된 패딩 계산
     if ow > oh:
         resized_w = rescaled_size
         resized_h = round(min(original_size) * resize_ratio)
@@ -73,7 +75,7 @@ def rescale_boxes_original(prediction, rescaled_size: int, original_size: tuple)
 
 
 def rescale_boxes_yolo(targets, original_size: tuple, rescaled_size: int):
-    """ Rescale bounding boxes to the YOLO input shape """
+    """ Rescale bounding boxes to the YOLO input shape. """
     ow, oh = original_size
     resize_ratio = rescaled_size / max(original_size)
 
@@ -83,6 +85,7 @@ def rescale_boxes_yolo(targets, original_size: tuple, rescaled_size: int):
     targets[:, 3] = ow * (targets[:, 1] + targets[:, 3] / 2)
     targets[:, 4] = oh * (targets[:, 2] + targets[:, 4] / 2)
 
+    # 적용된 패딩 계산
     if ow > oh:
         resized_w = rescaled_size
         resized_h = round(min(original_size) * resize_ratio)
