@@ -78,7 +78,7 @@ for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save im
 
     if prediction is not None:
         # Rescale boxes to original image
-        prediction = utils.utils.rescale_boxes(prediction, args.img_size, image.size)
+        prediction = utils.utils.rescale_boxes_original(prediction, args.img_size, image.size)
 
         for x1, y1, x2, y2, conf, cls_conf, cls_pred in prediction:
             # Set bounding box color

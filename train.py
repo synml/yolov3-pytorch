@@ -74,7 +74,7 @@ loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
 for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     model.train()
 
-    for batch_idx, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Batch', leave=False)):
+    for batch_idx, (imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Batch', leave=False)):
         step = len(dataloader) * epoch + batch_idx
 
         imgs = imgs.to(device)

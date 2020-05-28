@@ -35,7 +35,7 @@ def init_weights_normal(m):
         torch.nn.init.constant_(m.bias.data, 0.0)
 
 
-def rescale_boxes(prediction, input_size: int, original_size: tuple):
+def rescale_boxes_original(prediction, input_size: int, original_size: tuple):
     """ Rescale bounding boxes to the original shape """
     ow, oh = original_size
     resize_ratio = input_size / max(original_size)
@@ -72,6 +72,43 @@ def rescale_boxes(prediction, input_size: int, original_size: tuple):
                 prediction[i][k] = oh
 
     return prediction
+
+
+def rescale_boxes_yolo(targets, original_size: tuple, rescaled_size: int):
+    """ Rescale bounding boxes to the YOLO input shape """
+    ow, oh = original_size
+    resize_ratio = rescaled_size / max(original_size)
+
+    # (cx, cy, w, h) -> (x1, y1, x2, y2) | 비율값 -> 원본 이미지 좌표값
+    targets[:, 1] = ow * (targets[:, 1] - targets[:, 3] / 2)
+    targets[:, 2] = oh * (targets[:, 2] - targets[:, 4] / 2)
+    targets[:, 3] = ow * (targets[:, 1] + targets[:, 3] / 2)
+    targets[:, 4] = oh * (targets[:, 2] + targets[:, 4] / 2)
+
+    if ow > oh:
+        resized_w = rescaled_size
+        resized_h = round(min(original_size) * resize_ratio)
+        pad_x = 0
+        pad_y = abs(resized_w - resized_h)
+    else:
+        resized_w = round(min(original_size) * resize_ratio)
+        resized_h = rescaled_size
+        pad_x = abs(resized_w - resized_h)
+        pad_y = 0
+
+    # Rescale bounding boxes
+    targets[:, 1] = (targets[:, 1] + pad_x // 2) * resize_ratio
+    targets[:, 2] = (targets[:, 2] + pad_y // 2) * resize_ratio
+    targets[:, 3] = (targets[:, 3] + pad_x // 2) * resize_ratio
+    targets[:, 4] = (targets[:, 4] + pad_y // 2) * resize_ratio
+
+    # (x1, y1, x2, y2) -> (cx, cy, w, h)
+    targets[:, 3] = targets[:, 3] - targets[:, 1]
+    targets[:, 4] = targets[:, 4] - targets[:, 2]
+    targets[:, 1] = targets[:, 1] + targets[:, 3] / 2
+    targets[:, 2] = targets[:, 2] + targets[:, 4] / 2
+
+    return targets
 
 
 def xywh2xyxy(x):
