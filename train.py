@@ -50,7 +50,7 @@ else:
     model.load_darknet_weights(args.pretrained_weights)
 
 # 데이터셋, 데이터로더 설정
-dataset = utils.datasets.ListDataset(train_path, args.img_size, augmentation=True, multiscale=args.multiscale_training)
+dataset = utils.datasets.YOLODataset(train_path, args.img_size, augmentation=True, multiscale=args.multiscale_training)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=True,

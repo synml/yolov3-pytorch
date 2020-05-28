@@ -45,7 +45,7 @@ class ImageFolder(Dataset):
         return len(self.image_paths)
 
 
-class ListDataset(Dataset):
+class YOLODataset(Dataset):
     def __init__(self, list_path: str, img_size: int, augmentation: bool, multiscale: bool):
         with open(list_path, 'r') as f:
             self.image_paths = f.readlines()
@@ -75,7 +75,7 @@ class ListDataset(Dataset):
         original_size = image.size
         image = transform(image)
 
-        # 2. Label
+        # 2. Target bounding box
         # ----------------------------------------------------------------------------
         target_path = self.target_paths[index]
         targets = torch.from_numpy(np.loadtxt(target_path).reshape(-1, 5))
