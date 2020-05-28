@@ -89,9 +89,5 @@ class YOLODataset(Dataset):
     def collate_fn(self, batch):
         imgs, targets = list(zip(*batch))
 
-        # Add sample index to targets
-        for i, boxes in enumerate(targets):
-            boxes[:, 0] = i
-
         targets = torch.cat(targets, 0)
         return imgs, targets
