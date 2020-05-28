@@ -18,7 +18,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     model.eval()
 
     # Get dataloader
-    dataset = utils.datasets.ListDataset(path, img_size=img_size, augment=False, multiscale=False)
+    dataset = utils.datasets.ListDataset(path, img_size=img_size, augmentation=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=batch_size,
                                              shuffle=False,

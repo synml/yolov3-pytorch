@@ -44,69 +44,65 @@ def resize(image, size):
 
 class ImageFolder(Dataset):
     def __init__(self, folder_path: str, img_size: int):
-        self.files = sorted(glob.glob('{}/*.*'.format(folder_path)))
+        self.image_paths = sorted(glob.glob('{}/*.*'.format(folder_path)))
         self.img_size = img_size
 
     def __getitem__(self, index):
-        img_path = self.files[index]
+        image_path = self.image_paths[index]
 
         # Replace Windows path separator to Linux path separator
-        img_path = img_path.replace('\\', '/')
+        image_path = image_path.replace('\\', '/')
 
         transform = transforms.Compose([
             transforms.Resize((self.img_size, self.img_size)),
             transforms.ToTensor()
         ])
-        img = transform(Image.open(img_path).convert('RGB'))
-        return img_path, img
+        img = transform(Image.open(image_path).convert('RGB'))
+        return image_path, img
 
     def __len__(self):
-        return len(self.files)
+        return len(self.image_paths)
 
 
 class ListDataset(Dataset):
-    def __init__(self, list_path: str, img_size: int, augment=True, multiscale=True, normalized_labels=True):
+    def __init__(self, list_path: str, img_size: int, augmentation: bool, multiscale: bool):
         with open(list_path, 'r') as file:
-            self.img_files = file.readlines()
+            self.image_paths = file.readlines()
 
-        self.label_files = [path.replace('images', 'labels').replace('.png', '.txt').replace('.jpg', '.txt')
-                                .replace('JPEGImages', 'labels') for path in self.img_files]
+        self.label_paths = [path.replace('images', 'labels').replace('.png', '.txt').replace('.jpg', '.txt')
+                                .replace('JPEGImages', 'labels') for path in self.image_paths]
         self.img_size = img_size
         self.max_objects = 100
-        self.augment = augment
+        self.augmentation = augmentation
         self.multiscale = multiscale
-        self.normalized_labels = normalized_labels
         self.min_size = self.img_size - 3 * 32
         self.max_size = self.img_size + 3 * 32
         self.batch_count = 0
 
     def __getitem__(self, index):
+        # 1. Image
+        # ----------------------------------------------------------------
+        image_path = self.image_paths[index].rstrip()
 
-        # ---------
-        #  Image
-        # ---------
+        transform = transforms.Compose([
+            transforms.Resize((self.img_size, self.img_size)),
+            transforms.ToTensor()
+        ])
+        image = transform(Image.open(image_path).convert('RGB'))
 
-        img_path = self.img_files[index % len(self.img_files)].rstrip()
-
-        # Extract image as PyTorch tensor
-        img = transforms.ToTensor()(Image.open(img_path).convert('RGB'))
-
-        _, h, w = img.shape
-        h_factor, w_factor = (h, w) if self.normalized_labels else (1, 1)
+        _, h_factor, w_factor = image.shape
         # Pad to square resolution
-        img, pad = pad_to_square(img, 0)
-        _, padded_h, padded_w = img.shape
+        image, pad = pad_to_square(image, 0)
+        _, padded_h, padded_w = image.shape
 
-        # ---------
-        #  Label
-        # ---------
-
-        label_path = self.label_files[index % len(self.img_files)].rstrip()
+        #  2. Label
+        # ----------------------------------------------------------------
+        label_path = self.label_paths[index % len(self.image_paths)].rstrip()
 
         targets = None
         if os.path.exists(label_path):
             boxes = torch.from_numpy(np.loadtxt(label_path).reshape(-1, 5))
-            # Extract coordinates for unpadded + unscaled image
+            # Extract coordinates for original image (x, y, w, h) -> (x1, y1, x2, y2)
             x1 = w_factor * (boxes[:, 1] - boxes[:, 3] / 2)
             y1 = h_factor * (boxes[:, 2] - boxes[:, 4] / 2)
             x2 = w_factor * (boxes[:, 1] + boxes[:, 3] / 2)
@@ -126,14 +122,14 @@ class ListDataset(Dataset):
             targets[:, 1:] = boxes
 
         # Apply augmentations
-        if self.augment:
+        if self.augmentation:
             if np.random.random() < 0.5:
-                img, targets = horisontal_flip(img, targets)
+                image, targets = horisontal_flip(image, targets)
 
-        return img_path, img, targets
+        return image_path, image, targets
 
     def __len__(self):
-        return len(self.img_files)
+        return len(self.image_paths)
 
     def collate_fn(self, batch):
         paths, imgs, targets = list(zip(*batch))

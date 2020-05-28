@@ -61,7 +61,7 @@ for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
         prediction = model(imgs)
         prediction = utils.utils.non_max_suppression(prediction, args.conf_thres, args.nms_thres)
 
-    # Save image and detections
+    # Save image and prediction
     img_paths.extend(paths)
     img_predictions.extend(prediction)
 

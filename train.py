@@ -53,7 +53,7 @@ if args.pretrained_weights:
         model.load_darknet_weights(args.pretrained_weights)
 
 # Set dataloader
-dataset = utils.datasets.ListDataset(train_path, args.img_size, augment=True, multiscale=args.multiscale_training)
+dataset = utils.datasets.ListDataset(train_path, args.img_size, augmentation=True, multiscale=args.multiscale_training)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=True,
