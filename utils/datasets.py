@@ -47,8 +47,10 @@ class ImageFolder(Dataset):
 
 class ListDataset(Dataset):
     def __init__(self, list_path: str, img_size: int, augmentation: bool, multiscale: bool):
-        with open(list_path, 'r') as file:
-            self.image_paths = file.readlines()
+        with open(list_path, 'r') as f:
+            self.image_paths = f.readlines()
+        for i in range(len(self.image_paths)):
+            self.image_paths[i] = self.image_paths[i].strip()
 
         self.target_paths = [path.replace('images', 'labels').replace('.png', '.txt').replace('.jpg', '.txt')
                                  .replace('JPEGImages', 'labels') for path in self.image_paths]
@@ -63,7 +65,7 @@ class ListDataset(Dataset):
     def __getitem__(self, index):
         # 1. Image
         # ----------------------------------------------------------------------------
-        image_path = self.image_paths[index].rstrip()
+        image_path = self.image_paths[index]
 
         transform = transforms.Compose([
             transforms.Resize((self.img_size, self.img_size)),
@@ -75,7 +77,7 @@ class ListDataset(Dataset):
 
         # 2. Label
         # ----------------------------------------------------------------------------
-        target_path = self.target_paths[index].rstrip()
+        target_path = self.target_paths[index]
         targets = torch.from_numpy(np.loadtxt(target_path).reshape(-1, 5))
 
         # Rescale bounding boxes to the YOLO input shape

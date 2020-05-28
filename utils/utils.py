@@ -6,23 +6,21 @@ import tqdm
 def parse_data_config(path: str):
     """Parses the data configuration file"""
     options = {}
-    with open(path, 'r') as fp:
-        lines = fp.readlines()
+    with open(path, 'r') as f:
+        lines = f.readlines()
     for line in lines:
         line = line.strip()
-        if line == '' or line.startswith('#'):
-            continue
         key, value = line.split('=')
         options[key.strip()] = value.strip()
     return options
 
 
 def load_classes(path: str):
-    """
-    Loads class labels at 'path'
-    """
-    fp = open(path, "r")
-    names = fp.read().split("\n")[:-1]
+    """ Loads class labels at path """
+    with open(path, "r") as f:
+        names = f.readlines()
+    for i in range(len(names)):
+        names[i] = names[i].strip()
     return names
 
 
