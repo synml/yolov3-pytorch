@@ -89,5 +89,13 @@ class YOLODataset(Dataset):
     def collate_fn(self, batch):
         imgs, targets = list(zip(*batch))
 
+        batch_size = len(imgs)
+        channel = imgs[0].shape[0]
+        row = imgs[0].shape[1]
+        col = imgs[0].shape[2]
+        imgs_batch = torch.zeros(batch_size, channel, row, col)
+        for i in range(batch_size):
+            imgs_batch[i] = imgs[i]
+
         targets = torch.cat(targets, 0)
-        return imgs, targets
+        return imgs_batch, targets

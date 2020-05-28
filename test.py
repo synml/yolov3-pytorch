@@ -30,9 +30,6 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     for batch_i, (imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Detecting objects', leave=False)):
         # Extract labels
         labels += targets[:, 1].tolist()
-        # Rescale target
-        targets[:, 2:] = utils.utils.xywh2xyxy(targets[:, 2:])
-        targets[:, 2:] *= img_size
 
         with torch.no_grad():
             imgs = imgs.to(device)
