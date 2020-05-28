@@ -17,7 +17,7 @@ import utils.utils
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers, device):
     model.eval()
 
-    # Get dataloader
+    # 데이터셋, 데이터로더 설정
     dataset = utils.datasets.ListDataset(path, img_size=img_size, augmentation=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=batch_size,
@@ -71,19 +71,20 @@ if __name__ == "__main__":
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    # 데이터셋 설정값을 가져오기
     data_config = utils.utils.parse_data_config(args.data_config)
     valid_path = data_config['valid']
     num_classes = int(data_config['classes'])
     class_names = utils.utils.load_classes(data_config['names'])
 
-    # Initiate model
+    # 모델 준비하기
     model = model.yolov3.YOLOv3(args.img_size, num_classes).to(device)
     if args.pretrained_weights.endswith('.pth'):
         model.load_state_dict(torch.load(args.pretrained_weights))
     else:
         model.load_darknet_weights(args.pretrained_weights)
 
-    # Compute mAP
+    # 검증 데이터셋으로 모델을 평가
     precision, recall, AP, f1, ap_class = evaluate(
         model,
         path=valid_path,
@@ -96,15 +97,14 @@ if __name__ == "__main__":
         device=device
     )
 
-    # Print AP and mAP.
+    # AP와 mAP 출력
     print('Average Precisions:')
     for i, class_num in enumerate(ap_class):
         print('\tClass {} ({}) - AP: {:.02f}'.format(class_num, class_names[class_num], AP[i] * 100))
     print('mAP: {:.02f}'.format(AP.mean() * 100))
 
-    # Saving AP and mAP to csv file.
+    # AP와 mAP를 csv 파일로 저장
     os.makedirs('csv', exist_ok=True)
-
     now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
     with open('csv/test{}.csv'.format(now), mode='w') as f:
         writer = csv.writer(f, delimiter=',')
