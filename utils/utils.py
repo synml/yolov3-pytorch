@@ -35,19 +35,19 @@ def init_weights_normal(m):
         torch.nn.init.constant_(m.bias.data, 0.0)
 
 
-def rescale_boxes_original(prediction, input_size: int, original_size: tuple):
+def rescale_boxes_original(prediction, rescaled_size: int, original_size: tuple):
     """ Rescale bounding boxes to the original shape """
     ow, oh = original_size
-    resize_ratio = input_size / max(original_size)
+    resize_ratio = rescaled_size / max(original_size)
 
     if ow > oh:
-        resized_w = input_size
+        resized_w = rescaled_size
         resized_h = round(min(original_size) * resize_ratio)
         pad_x = 0
         pad_y = abs(resized_w - resized_h)
     else:
         resized_w = round(min(original_size) * resize_ratio)
-        resized_h = input_size
+        resized_h = rescaled_size
         pad_x = abs(resized_w - resized_h)
         pad_y = 0
 
