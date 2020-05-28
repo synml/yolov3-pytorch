@@ -17,8 +17,8 @@ import utils.utils
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers, device):
     model.eval()
 
-    # 데이터셋, 데이터로더 설정
-    dataset = utils.datasets.YOLODataset(path, img_size, augmentation=False, multiscale=False)
+    # Get dataloader
+    dataset = utils.datasets.ListDataset(path, img_size=img_size, augment=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=batch_size,
                                              shuffle=False,
@@ -27,9 +27,16 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
     labels = []
     sample_metrics = []  # List of tuples (TP, confs, pred)
-    for batch_i, (imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Detecting objects', leave=False)):
+    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Detecting objects', leave=False)):
+
+        if targets is None:
+            continue
+
         # Extract labels
         labels += targets[:, 1].tolist()
+        # Rescale target
+        targets[:, 2:] = utils.utils.xywh2xyxy(targets[:, 2:])
+        targets[:, 2:] *= img_size
 
         with torch.no_grad():
             imgs = imgs.to(device)

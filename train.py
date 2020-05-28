@@ -50,7 +50,7 @@ else:
     model.load_darknet_weights(args.pretrained_weights)
 
 # 데이터셋, 데이터로더 설정
-dataset = utils.datasets.YOLODataset(train_path, args.img_size, augmentation=True, multiscale=args.multiscale_training)
+dataset = utils.datasets.ListDataset(train_path, args.img_size, augment=True, multiscale=args.multiscale_training)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=True,
@@ -69,7 +69,6 @@ loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
 
 # Train code.
 for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
-    # 모델을 train mode로 설정
     model.train()
     
     # 1 epoch의 각 배치에서 처리하는 코드
