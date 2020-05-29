@@ -3,6 +3,7 @@ import os
 
 import torch
 import torch.utils.data
+import torchvision
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -12,7 +13,6 @@ import tqdm
 
 import model.yolov3
 import model.yolov3_proposed
-import utils.datasets
 import utils.utils
 
 parser = argparse.ArgumentParser()
@@ -44,26 +44,26 @@ else:
     model.load_darknet_weights(args.pretrained_weights)
 
 # 데이터셋, 데이터로더 설정
-dataset = utils.datasets.ImageFolder(args.image_folder, img_size=args.img_size)
+transform = torchvision.transforms.Compose([
+    torchvision.transforms.Resize((args.img_size, args.img_size)),
+    torchvision.transforms.ToTensor()
+])
+dataset = torchvision.datasets.ImageFolder(root=args.image_folder, transform=transform)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=False,
                                          num_workers=args.n_cpu)
 
-# 모델을 evaluation mode로 설정
-model.eval()
-
 # 객체를 검출하는 코드
-img_paths = []  # 이미지 경로 저장
+model.eval()  # 모델을 evaluation mode로 설정
 img_predictions = []  # 각 이미지의 예측 결과 저장
-for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
+for imgs, _ in tqdm.tqdm(dataloader, desc='Batch'):
     with torch.no_grad():
         imgs = imgs.to(device)
         prediction = model(imgs)
         prediction = utils.utils.non_max_suppression(prediction, args.conf_thres, args.nms_thres)
 
-    # 이미지 경로와 예측 결과 저장
-    img_paths.extend(paths)
+    # 예측 결과 저장
     img_predictions.extend(prediction)
 
 # bounding box colormap 설정
@@ -72,8 +72,9 @@ cmap_rgb: list = np.multiply(cmap, 255).astype(np.int32).tolist()
 
 # 결과 이미지를 저장하는 코드
 os.makedirs(args.save_folder, exist_ok=True)
-for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save images', total=dataset.__len__()):
+for (path, _), prediction in tqdm.tqdm(zip(dataset.imgs, img_predictions), desc='Save images', total=dataset.__len__()):
     # 원본 이미지 열기
+    path = path.replace('\\', '/')
     image = Image.open(path)
     draw = ImageDraw.Draw(image)
 
@@ -96,6 +97,6 @@ for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save im
             draw.text((x1, y1), text, fill=(0, 0, 0), font=font)
 
     # 결과 이미지 저장
-    filename = path.split("/")[-1].split(".")[0]
-    image.save("{}/{}.jpg".format(args.save_folder, filename))
+    filename = path.split('/')[-1]
+    image.save(os.path.join(args.save_folder, filename))
     image.close()
