@@ -17,7 +17,7 @@ import utils.utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
-parser.add_argument("--save_folder", type=str, default='../../detect', help='path to saving result folder')
+parser.add_argument("--save_folder", type=str, default='../../demo', help='path to saving result folder')
 parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
