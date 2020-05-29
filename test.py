@@ -107,7 +107,7 @@ if __name__ == "__main__":
     os.makedirs('csv', exist_ok=True)
     now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
     with open('csv/test{}.csv'.format(now), mode='w') as f:
-        writer = csv.writer(f, delimiter=',')
+        writer = csv.writer(f, delimiter=',', lineterminator='\n')
 
         writer.writerow(['Class Number', 'Class Name', 'AP'])
         for i, class_num in enumerate(ap_class):
