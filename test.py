@@ -17,7 +17,7 @@ import utils.utils
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers, device):
     model.eval()
 
-    # Get dataloader
+    # 데이터셋, 데이터로더 설정
     dataset = utils.datasets.ListDataset(path, img_size=img_size, augment=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=batch_size,

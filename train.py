@@ -69,6 +69,7 @@ loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
 
 # Train code.
 for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
+    # 모델을 train mode로 설정
     model.train()
     
     # 1 epoch의 각 배치에서 처리하는 코드
