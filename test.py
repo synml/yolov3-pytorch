@@ -15,6 +15,7 @@ import utils.utils
 
 
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers, device):
+    # 모델을 evaluation mode로 설정
     model.eval()
 
     # 데이터셋, 데이터로더 설정
@@ -58,6 +59,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
+    parser.add_argument("--num_workers", type=int, default=8, help="number of cpu threads to use during batch generation")
     parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
     parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                         help="path to pretrained weights file")
@@ -65,7 +67,6 @@ if __name__ == "__main__":
     parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
     parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.5, help="iou threshold for non-maximum suppression")
-    parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
     args = parser.parse_args()
     print(args)
 
@@ -92,7 +93,7 @@ if __name__ == "__main__":
                                                    nms_thres=args.nms_thres,
                                                    img_size=args.img_size,
                                                    batch_size=args.batch_size,
-                                                   num_workers=args.n_cpu,
+                                                   num_workers=args.num_workers,
                                                    device=device)
 
     # AP와 mAP 출력

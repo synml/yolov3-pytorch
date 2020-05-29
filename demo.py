@@ -19,13 +19,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--image_folder", type=str, default="../../data/voc_test", help="path to image folder")
 parser.add_argument("--save_folder", type=str, default='../../demo', help='path to saving result folder')
 parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
+parser.add_argument("--num_workers", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                     help="path to pretrained weights file")
 parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
 parser.add_argument("--conf_thres", type=float, default=0.5, help="object confidence threshold")
 parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
-parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 args = parser.parse_args()
 print(args)
 
@@ -52,7 +52,7 @@ dataset = torchvision.datasets.ImageFolder(root=args.image_folder, transform=tra
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=False,
-                                         num_workers=args.n_cpu)
+                                         num_workers=args.num_workers)
 
 # 객체를 검출하는 코드
 model.eval()  # 모델을 evaluation mode로 설정
