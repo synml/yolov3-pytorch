@@ -85,17 +85,15 @@ if __name__ == "__main__":
         model.load_darknet_weights(args.pretrained_weights)
 
     # 검증 데이터셋으로 모델을 평가
-    precision, recall, AP, f1, ap_class = evaluate(
-        model,
-        path=valid_path,
-        iou_thres=args.iou_thres,
-        conf_thres=args.conf_thres,
-        nms_thres=args.nms_thres,
-        img_size=args.img_size,
-        batch_size=args.batch_size,
-        num_workers=args.n_cpu,
-        device=device
-    )
+    precision, recall, AP, f1, ap_class = evaluate(model,
+                                                   path=valid_path,
+                                                   iou_thres=args.iou_thres,
+                                                   conf_thres=args.conf_thres,
+                                                   nms_thres=args.nms_thres,
+                                                   img_size=args.img_size,
+                                                   batch_size=args.batch_size,
+                                                   num_workers=args.n_cpu,
+                                                   device=device)
 
     # AP와 mAP 출력
     print('Average Precisions:')
