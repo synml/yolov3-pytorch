@@ -1,11 +1,10 @@
-import glob
 import os
 import random
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import Dataset
-import torchvision.transforms as transforms
+import torch.utils.data
+import torchvision.transforms
 import numpy as np
 from PIL import Image
 
@@ -42,29 +41,7 @@ def resize(image, size):
     return image
 
 
-class ImageFolder(Dataset):
-    def __init__(self, folder_path: str, img_size: int):
-        self.files = sorted(glob.glob('{}/*.*'.format(folder_path)))
-        self.img_size = img_size
-
-    def __getitem__(self, index):
-        img_path = self.files[index]
-
-        # Replace Windows path separator to Linux path separator
-        img_path = img_path.replace('\\', '/')
-
-        transform = transforms.Compose([
-            transforms.Resize((self.img_size, self.img_size)),
-            transforms.ToTensor()
-        ])
-        img = transform(Image.open(img_path).convert('RGB'))
-        return img_path, img
-
-    def __len__(self):
-        return len(self.files)
-
-
-class ListDataset(Dataset):
+class ListDataset(torch.utils.data.Dataset):
     def __init__(self, list_path: str, img_size: int, augment=True, multiscale=True, normalized_labels=True):
         with open(list_path, 'r') as file:
             self.img_files = file.readlines()
@@ -89,7 +66,7 @@ class ListDataset(Dataset):
         img_path = self.img_files[index % len(self.img_files)].rstrip()
 
         # Extract image as PyTorch tensor
-        img = transforms.ToTensor()(Image.open(img_path).convert('RGB'))
+        img = torchvision.transforms.ToTensor()(Image.open(img_path).convert('RGB'))
 
         _, h, w = img.shape
         h_factor, w_factor = (h, w) if self.normalized_labels else (1, 1)
