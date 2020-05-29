@@ -98,3 +98,4 @@ for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save im
     # 결과 이미지 저장
     filename = path.split("/")[-1].split(".")[0]
     image.save("{}/{}.jpg".format(args.save_folder, filename))
+    image.close()
