@@ -26,10 +26,11 @@ def load_classes(path: str):
 
 
 def init_weights_normal(m):
-    """ 정규분포형으로 가중치를 초기화한다. """
+    """ 정규분포 형태로 가중치를 초기화한다. """
     classname = m.__class__.__name__
     if classname.find("Conv") != -1:
         torch.nn.init.kaiming_normal_(m.weight.data, 0.1)
+
     elif classname.find("BatchNorm2d") != -1:
         torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
         torch.nn.init.constant_(m.bias.data, 0.0)
@@ -75,6 +76,7 @@ def rescale_boxes_original(prediction, rescaled_size: int, original_size: tuple)
     return prediction
 
 
+# Unused code
 def rescale_boxes_yolo(targets, original_size: tuple, rescaled_size: int):
     """ Rescale bounding boxes to the YOLO input shape. """
     ow, oh = original_size
@@ -218,7 +220,7 @@ def compute_ap(recall, precision):
 
 
 def get_batch_statistics(outputs, targets, iou_threshold):
-    """ Compute true positives, predicted scores and predicted labels per sample """
+    """ Compute true positives, predicted scores and predicted labels per sample. """
     batch_metrics = []
     for sample_i in range(len(outputs)):
 
@@ -266,9 +268,7 @@ def bbox_wh_iou(wh1, wh2):
 
 
 def bbox_iou(box1, box2, x1y1x2y2=True):
-    """
-    Returns the IoU of two bounding boxes
-    """
+    """ Returns the IoU of two bounding boxes. """
     if not x1y1x2y2:
         # Transform from center and width to exact coordinates
         b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2
@@ -285,16 +285,17 @@ def bbox_iou(box1, box2, x1y1x2y2=True):
     inter_rect_y1 = torch.max(b1_y1, b2_y1)
     inter_rect_x2 = torch.min(b1_x2, b2_x2)
     inter_rect_y2 = torch.min(b1_y2, b2_y2)
+
     # Intersection area
     inter_area = torch.clamp(inter_rect_x2 - inter_rect_x1 + 1, min=0) * torch.clamp(
         inter_rect_y2 - inter_rect_y1 + 1, min=0
     )
+
     # Union Area
     b1_area = (b1_x2 - b1_x1 + 1) * (b1_y2 - b1_y1 + 1)
     b2_area = (b2_x2 - b2_x1 + 1) * (b2_y2 - b2_y1 + 1)
 
     iou = inter_area / (b1_area + b2_area - inter_area + 1e-16)
-
     return iou
 
 
@@ -306,21 +307,26 @@ def non_max_suppression(prediction, conf_thres, nms_thres):
         (x1, y1, x2, y2, object_conf, class_score, class_pred)
     """
 
-    # From (center x, center y, width, height) to (x1, y1, x2, y2)
+    # (cx, cy, w, h) -> (x1, y1, x2, y2)
     prediction[..., :4] = xywh2xyxy(prediction[..., :4])
     output = [None for _ in range(len(prediction))]
+
     for image_i, image_pred in enumerate(prediction):
         # Filter out confidence scores below threshold
         image_pred = image_pred[image_pred[:, 4] >= conf_thres]
+
         # If none are remaining => process next image
         if not image_pred.size(0):
             continue
+
         # Object confidence times class confidence
         score = image_pred[:, 4] * image_pred[:, 5:].max(1)[0]
+
         # Sort by it
         image_pred = image_pred[(-score).argsort()]
         class_confs, class_preds = image_pred[:, 5:].max(1, keepdim=True)
         detections = torch.cat((image_pred[:, :5], class_confs.float(), class_preds.float()), 1)
+
         # Perform non-maximum suppression
         keep_boxes = []
         while detections.size(0):
@@ -340,7 +346,6 @@ def non_max_suppression(prediction, conf_thres, nms_thres):
 
 
 def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
-
     BoolTensor = torch.cuda.BoolTensor if pred_boxes.is_cuda else torch.BoolTensor
     FloatTensor = torch.cuda.FloatTensor if pred_boxes.is_cuda else torch.FloatTensor
 
@@ -364,14 +369,17 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     target_boxes = target[:, 2:6] * nG
     gxy = target_boxes[:, :2]
     gwh = target_boxes[:, 2:]
+
     # Get anchors with best iou
     ious = torch.stack([bbox_wh_iou(anchor, gwh) for anchor in anchors])
     best_ious, best_n = ious.max(0)
+
     # Separate target values
     b, target_labels = target[:, :2].long().t()
     gx, gy = gxy.t()
     gw, gh = gwh.t()
     gi, gj = gxy.long().t()
+
     # Set masks
     obj_mask[b, best_n, gj, gi] = 1
     noobj_mask[b, best_n, gj, gi] = 0
@@ -383,11 +391,14 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     # Coordinates
     tx[b, best_n, gj, gi] = gx - gx.floor()
     ty[b, best_n, gj, gi] = gy - gy.floor()
+
     # Width and height
     tw[b, best_n, gj, gi] = torch.log(gw / anchors[best_n][:, 0] + 1e-16)
     th[b, best_n, gj, gi] = torch.log(gh / anchors[best_n][:, 1] + 1e-16)
+
     # One-hot encoding of label
     tcls[b, best_n, gj, gi, target_labels] = 1
+
     # Compute label correctness and iou at best anchor
     class_mask[b, best_n, gj, gi] = (pred_cls[b, best_n, gj, gi].argmax(-1) == target_labels).float()
     iou_scores[b, best_n, gj, gi] = bbox_iou(pred_boxes[b, best_n, gj, gi], target_boxes, x1y1x2y2=False)
