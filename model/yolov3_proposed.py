@@ -17,34 +17,16 @@ class YOLODetection(nn.Module):
         self.bce_loss = nn.BCELoss()
         self.ignore_thres = 0.5
         self.obj_scale = 1
-        self.noobj_scale = 100
+        self.no_obj_scale = 100
         self.metrics = {}
 
-        self.stride = 0
-        self.grid_x = 0
-        self.grid_y = 0
-        self.scaled_anchors = 0
-        self.anchor_w = 0
-        self.anchor_h = 0
-
-    def compute_grid_offsets(self, grid_size: int, cuda=True):
-        FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
-        self.stride = self.img_size / grid_size
-
-        # Calculate offsets for each grid
-        self.grid_x = torch.arange(grid_size).repeat(grid_size, 1).view([1, 1, grid_size, grid_size]).type(FloatTensor)
-        self.grid_y = torch.arange(grid_size).repeat(grid_size, 1).t().view([1, 1, grid_size, grid_size]).type(FloatTensor)
-        self.scaled_anchors = FloatTensor([(a_w / self.stride, a_h / self.stride) for a_w, a_h in self.anchors])
-        self.anchor_w = self.scaled_anchors[:, 0:1].view((1, self.num_anchors, 1, 1))
-        self.anchor_h = self.scaled_anchors[:, 1:2].view((1, self.num_anchors, 1, 1))
-
     def forward(self, x, targets):
-        # Tensors for cuda support
         FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
 
         num_batches = x.size(0)
         grid_size = x.size(2)
 
+        # 출력값 형태 변환
         prediction = (
             x.view(num_batches, self.num_anchors, self.num_classes + 5, grid_size, grid_size)
                 .permute(0, 1, 3, 4, 2).contiguous()
@@ -55,19 +37,25 @@ class YOLODetection(nn.Module):
         cy = torch.sigmoid(prediction[..., 1])  # Center y
         w = prediction[..., 2]  # Width
         h = prediction[..., 3]  # Height
-        pred_conf = torch.sigmoid(prediction[..., 4])  # Conf
-        pred_cls = torch.sigmoid(prediction[..., 5:])  # Cls pred.
+        pred_conf = torch.sigmoid(prediction[..., 4])  # Object confidence (objectness)
+        pred_cls = torch.sigmoid(prediction[..., 5:])  # Class prediction
 
-        self.compute_grid_offsets(grid_size, cuda=x.is_cuda)
+        # Calculate offsets for each grid
+        stride = self.img_size / grid_size
+        grid_x = torch.arange(grid_size).repeat(grid_size, 1).view([1, 1, grid_size, grid_size]).type(FloatTensor)
+        grid_y = torch.arange(grid_size).repeat(grid_size, 1).t().view([1, 1, grid_size, grid_size]).type(FloatTensor)
+        scaled_anchors = FloatTensor([(a_w / stride, a_h / stride) for a_w, a_h in self.anchors])
+        anchor_w = scaled_anchors[:, 0:1].view((1, self.num_anchors, 1, 1))
+        anchor_h = scaled_anchors[:, 1:2].view((1, self.num_anchors, 1, 1))
 
         # Add offset and scale with anchors
         pred_boxes = FloatTensor(prediction[..., :4].shape)
-        pred_boxes[..., 0] = cx.data + self.grid_x
-        pred_boxes[..., 1] = cy.data + self.grid_y
-        pred_boxes[..., 2] = torch.exp(w.data) * self.anchor_w
-        pred_boxes[..., 3] = torch.exp(h.data) * self.anchor_h
+        pred_boxes[..., 0] = cx.data + grid_x
+        pred_boxes[..., 1] = cy.data + grid_y
+        pred_boxes[..., 2] = torch.exp(w.data) * anchor_w
+        pred_boxes[..., 3] = torch.exp(h.data) * anchor_h
 
-        pred = (pred_boxes.view(num_batches, -1, 4) * self.stride,
+        pred = (pred_boxes.view(num_batches, -1, 4) * stride,
                 pred_conf.view(num_batches, -1, 1),
                 pred_cls.view(num_batches, -1, self.num_classes))
         output = torch.cat(pred, -1)
@@ -79,7 +67,7 @@ class YOLODetection(nn.Module):
             pred_boxes=pred_boxes,
             pred_cls=pred_cls,
             target=targets,
-            anchors=self.scaled_anchors,
+            anchors=scaled_anchors,
             ignore_thres=self.ignore_thres
         )
 
@@ -90,7 +78,7 @@ class YOLODetection(nn.Module):
         loss_h = self.mse_loss(h[obj_mask], th[obj_mask])
         loss_conf_obj = self.bce_loss(pred_conf[obj_mask], tconf[obj_mask])
         loss_conf_noobj = self.bce_loss(pred_conf[noobj_mask], tconf[noobj_mask])
-        loss_conf = self.obj_scale * loss_conf_obj + self.noobj_scale * loss_conf_noobj
+        loss_conf = self.obj_scale * loss_conf_obj + self.no_obj_scale * loss_conf_noobj
         loss_cls = self.bce_loss(pred_cls[obj_mask], tcls[obj_mask])
         layer_loss = loss_x + loss_y + loss_w + loss_h + loss_conf + loss_cls
 
