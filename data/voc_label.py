@@ -70,6 +70,10 @@ if __name__ == '__main__':
             convert_annotation(year, image_id)
         list_file.close()
 
+    with open('voc_classes.txt', 'w', encoding='utf-8') as f:
+        for cls in classes:
+            f.write(cls + '\n')
+
     os.system('cat 2007_train.txt 2007_val.txt 2012_train.txt 2012_val.txt > train.txt')
     os.remove('2007_train.txt')
     os.remove('2007_val.txt')
