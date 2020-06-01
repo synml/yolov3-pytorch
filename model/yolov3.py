@@ -21,7 +21,7 @@ class YOLODetection(nn.Module):
         self.metrics = {}
 
     def forward(self, x, targets):
-        FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
+        device = torch.device('cuda' if x.is_cuda else 'cpu')
 
         num_batches = x.size(0)
         grid_size = x.size(2)
@@ -42,18 +42,19 @@ class YOLODetection(nn.Module):
 
         # Calculate offsets for each grid
         stride = self.img_size / grid_size
-        grid_x = torch.arange(grid_size).repeat(grid_size, 1).view([1, 1, grid_size, grid_size]).type(FloatTensor)
-        grid_y = torch.arange(grid_size).repeat(grid_size, 1).t().view([1, 1, grid_size, grid_size]).type(FloatTensor)
-        scaled_anchors = FloatTensor([(a_w / stride, a_h / stride) for a_w, a_h in self.anchors])
+        grid_x = torch.arange(grid_size, dtype=torch.float, device=device).repeat(grid_size, 1).view([1, 1, grid_size, grid_size])
+        grid_y = torch.arange(grid_size, dtype=torch.float, device=device).repeat(grid_size, 1).t().view([1, 1, grid_size, grid_size])
+        scaled_anchors = torch.as_tensor([(a_w / stride, a_h / stride) for a_w, a_h in self.anchors],
+                                         dtype=torch.float, device=device)
         anchor_w = scaled_anchors[:, 0:1].view((1, self.num_anchors, 1, 1))
         anchor_h = scaled_anchors[:, 1:2].view((1, self.num_anchors, 1, 1))
 
         # Add offset and scale with anchors
-        pred_boxes = FloatTensor(prediction[..., :4].shape)
-        pred_boxes[..., 0] = cx.data + grid_x
-        pred_boxes[..., 1] = cy.data + grid_y
-        pred_boxes[..., 2] = torch.exp(w.data) * anchor_w
-        pred_boxes[..., 3] = torch.exp(h.data) * anchor_h
+        pred_boxes = torch.zeros_like(prediction[..., :4], device=device)
+        pred_boxes[..., 0] = cx + grid_x
+        pred_boxes[..., 1] = cy + grid_y
+        pred_boxes[..., 2] = torch.exp(w) * anchor_w
+        pred_boxes[..., 3] = torch.exp(h) * anchor_h
 
         pred = (pred_boxes.view(num_batches, -1, 4) * stride,
                 pred_conf.view(num_batches, -1, 1),
@@ -363,12 +364,12 @@ class YOLOv3(nn.Module):
 
 if __name__ == '__main__':
     model = YOLOv3(img_size=416, num_classes=80)
-    model.load_darknet_weights('weights/yolov3.weights')
+    model.load_darknet_weights('../weights/yolov3.weights')
     print(model)
 
     test = torch.rand([1, 3, 416, 416])
     y = model(test)
 
-    writer = torch.utils.tensorboard.SummaryWriter('logs')
+    writer = torch.utils.tensorboard.SummaryWriter('../logs')
     writer.add_graph(model, test)
     writer.close()
