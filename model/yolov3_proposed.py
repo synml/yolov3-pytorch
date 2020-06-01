@@ -29,7 +29,7 @@ class YOLODetection(nn.Module):
         # 출력값 형태 변환
         prediction = (
             x.view(num_batches, self.num_anchors, self.num_classes + 5, grid_size, grid_size)
-                .permute(0, 1, 3, 4, 2).contiguous()
+             .permute(0, 1, 3, 4, 2).contiguous()
         )
 
         # Get outputs
@@ -63,7 +63,7 @@ class YOLODetection(nn.Module):
         if targets is None:
             return output, 0
 
-        iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf = utils.utils.build_targets(
+        iou_scores, class_mask, obj_mask, no_obj_mask, tx, ty, tw, th, tcls, tconf = utils.utils.build_targets(
             pred_boxes=pred_boxes,
             pred_cls=pred_cls,
             target=targets,
@@ -77,8 +77,8 @@ class YOLODetection(nn.Module):
         loss_w = self.mse_loss(w[obj_mask], tw[obj_mask])
         loss_h = self.mse_loss(h[obj_mask], th[obj_mask])
         loss_conf_obj = self.bce_loss(pred_conf[obj_mask], tconf[obj_mask])
-        loss_conf_noobj = self.bce_loss(pred_conf[noobj_mask], tconf[noobj_mask])
-        loss_conf = self.obj_scale * loss_conf_obj + self.no_obj_scale * loss_conf_noobj
+        loss_conf_no_obj = self.bce_loss(pred_conf[no_obj_mask], tconf[no_obj_mask])
+        loss_conf = self.obj_scale * loss_conf_obj + self.no_obj_scale * loss_conf_no_obj
         loss_cls = self.bce_loss(pred_cls[obj_mask], tcls[obj_mask])
         layer_loss = loss_x + loss_y + loss_w + loss_h + loss_conf + loss_cls
 
@@ -89,7 +89,7 @@ class YOLODetection(nn.Module):
         detected_mask = conf50 * class_mask * tconf
         cls_acc = 100 * class_mask[obj_mask].mean()
         conf_obj = pred_conf[obj_mask].mean()
-        conf_noobj = pred_conf[noobj_mask].mean()
+        conf_no_obj = pred_conf[no_obj_mask].mean()
         precision = torch.sum(iou50 * detected_mask) / (conf50.sum() + 1e-16)
         recall50 = torch.sum(iou50 * detected_mask) / (obj_mask.sum() + 1e-16)
         recall75 = torch.sum(iou75 * detected_mask) / (obj_mask.sum() + 1e-16)
@@ -105,7 +105,7 @@ class YOLODetection(nn.Module):
             "layer_loss": layer_loss.detach().cpu().item(),
             "cls_acc": cls_acc.detach().cpu().item(),
             "conf_obj": conf_obj.detach().cpu().item(),
-            "conf_noobj": conf_noobj.detach().cpu().item(),
+            "conf_no_obj": conf_no_obj.detach().cpu().item(),
             "precision": precision.detach().cpu().item(),
             "recall50": recall50.detach().cpu().item(),
             "recall75": recall75.detach().cpu().item()
