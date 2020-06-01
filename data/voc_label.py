@@ -7,12 +7,7 @@ Pascal VOC의 원본 annotation을 Yolo v3의 Object Detection label format으�
 
 출력되는 파일은 아래와 같습니다.
     2007_test.txt
-    2007_train.txt
-    2007_val.txt
-    2012_train.txt
-    2012_val.txt
     train.txt
-이 파일에서 오직 train.txt, 2007_test.txt만 필요합니다. 나머지는 삭제해도 됩니다.
 두 파일을 열어보면 trainval 이미지들의 위치가 절대경로로 적혀있습니다.
 상대경로로 바꿔주려면 VSCode에서 알맞게 변환해줍니다.
 """
@@ -75,4 +70,8 @@ if __name__ == '__main__':
             convert_annotation(year, image_id)
         list_file.close()
 
-    os.system("cat 2007_train.txt 2007_val.txt 2012_train.txt 2012_val.txt > train.txt")
+    os.system('cat 2007_train.txt 2007_val.txt 2012_train.txt 2012_val.txt > train.txt')
+    os.remove('2007_train.txt')
+    os.remove('2007_val.txt')
+    os.remove('2012_train.txt')
+    os.remove('2012_val.txt')
