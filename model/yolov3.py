@@ -25,11 +25,11 @@ class YOLODetection(nn.Module):
 
         num_batches = x.size(0)
         grid_size = x.size(2)
-        
+
         # 출력값 형태 변환
         prediction = (
             x.view(num_batches, self.num_anchors, self.num_classes + 5, grid_size, grid_size)
-             .permute(0, 1, 3, 4, 2).contiguous()
+                .permute(0, 1, 3, 4, 2).contiguous()
         )
 
         # Get outputs
@@ -42,8 +42,10 @@ class YOLODetection(nn.Module):
 
         # Calculate offsets for each grid
         stride = self.img_size / grid_size
-        grid_x = torch.arange(grid_size, dtype=torch.float, device=device).repeat(grid_size, 1).view([1, 1, grid_size, grid_size])
-        grid_y = torch.arange(grid_size, dtype=torch.float, device=device).repeat(grid_size, 1).t().view([1, 1, grid_size, grid_size])
+        grid_x = torch.arange(grid_size, dtype=torch.float, device=device).repeat(grid_size, 1).view(
+            [1, 1, grid_size, grid_size])
+        grid_y = torch.arange(grid_size, dtype=torch.float, device=device).repeat(grid_size, 1).t().view(
+            [1, 1, grid_size, grid_size])
         scaled_anchors = torch.as_tensor([(a_w / stride, a_h / stride) for a_w, a_h in self.anchors],
                                          dtype=torch.float, device=device)
         anchor_w = scaled_anchors[:, 0:1].view((1, self.num_anchors, 1, 1))
