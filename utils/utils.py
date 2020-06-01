@@ -94,7 +94,7 @@ def rescale_boxes_yolo(targets, original_size: tuple, rescaled_size: int):
     temp[:, 2] *= oh
     temp[:, 3] *= ow
     temp[:, 4] *= oh
-    
+
     # 각 좌표에 1 더해주기
     temp[:, 1:] += 1
     targets = temp
@@ -346,8 +346,7 @@ def non_max_suppression(prediction, conf_thres, nms_thres):
 
 
 def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
-    BoolTensor = torch.cuda.BoolTensor if pred_boxes.is_cuda else torch.BoolTensor
-    FloatTensor = torch.cuda.FloatTensor if pred_boxes.is_cuda else torch.FloatTensor
+    device = torch.device('cuda' if pred_boxes.is_cuda else 'cpu')
 
     nB = pred_boxes.size(0)
     nA = pred_boxes.size(1)
@@ -355,15 +354,15 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     nG = pred_boxes.size(2)
 
     # Output tensors
-    obj_mask = BoolTensor(nB, nA, nG, nG).fill_(0)
-    noobj_mask = BoolTensor(nB, nA, nG, nG).fill_(1)
-    class_mask = FloatTensor(nB, nA, nG, nG).fill_(0)
-    iou_scores = FloatTensor(nB, nA, nG, nG).fill_(0)
-    tx = FloatTensor(nB, nA, nG, nG).fill_(0)
-    ty = FloatTensor(nB, nA, nG, nG).fill_(0)
-    tw = FloatTensor(nB, nA, nG, nG).fill_(0)
-    th = FloatTensor(nB, nA, nG, nG).fill_(0)
-    tcls = FloatTensor(nB, nA, nG, nG, nC).fill_(0)
+    obj_mask = torch.zeros(nB, nA, nG, nG, dtype=torch.bool, device=device)
+    noobj_mask = torch.ones(nB, nA, nG, nG, dtype=torch.bool, device=device)
+    class_mask = torch.zeros(nB, nA, nG, nG, dtype=torch.float, device=device)
+    iou_scores = torch.zeros(nB, nA, nG, nG, dtype=torch.float, device=device)
+    tx = torch.zeros(nB, nA, nG, nG, dtype=torch.float, device=device)
+    ty = torch.zeros(nB, nA, nG, nG, dtype=torch.float, device=device)
+    tw = torch.zeros(nB, nA, nG, nG, dtype=torch.float, device=device)
+    th = torch.zeros(nB, nA, nG, nG, dtype=torch.float, device=device)
+    tcls = torch.zeros(nB, nA, nG, nG, nC, dtype=torch.float, device=device)
 
     # Convert to position relative to box
     target_boxes = target[:, 2:6] * nG
