@@ -29,7 +29,7 @@
 3. 리포지토리를 클론, 포크하거나 압축파일로 코드를 다운로드하세요.
 
 4. 데이터셋을 준비하세요.
-   1. COCO: setup_coco_dataset.sh를 읽어보고 사전 준비를 한 후, 아래의 명령을 수행하십시오.
+   1. COCO: setup_coco_dataset.sh를 읽어보고 사전 준비를 한 후, 아래의 명령을 수행하세요.
 
       ```shell
       $ mv data/setup_coco_dataset.sh ./
@@ -37,17 +37,18 @@
       ```
 
    2. VOC
-      1. [여기](http://host.robots.ox.ac.uk/pascal/VOC/)에서 다운로드하거나 [제 리포지토리](https://github.com/LulinPollux/dataset-downloader)를 사용하여 데이터셋을 다운로드합니다.
-      2. voc_label.py의 docs를 읽어보고 YOLOv3에서 사용할 라벨을 만드세요.
-
-5. 사전 훈련된 가중치 파일을 다운로드하세요.
+      1. [여기](http://host.robots.ox.ac.uk/pascal/VOC/)에서 데이터셋을 다운로드하거나 [제 리포지토리](https://github.com/LulinPollux/dataset-downloader)를 사용하여 다운로드합니다.
+      2. 아카이브 파일을 추출합니다. (VOCdevkit/VOC2007, VOCdevkit/VOC2012)
+   3. voc_label.py의 docs를 읽어보고 YOLOv3에서 사용할 라벨을 만드세요.
+   
+5. 사전 훈련된 가중치 파일을 다운로드해서 ./weights 폴더로 옮기세요.
 
    1. [yolov3.weights](https://pjreddie.com/media/files/yolov3.weights)
    2. [darknet53.conv.74](https://pjreddie.com/media/files/darknet53.conv.74)
 
 ## How to Use, Example
 
-실제로 프로젝트를 사용하는 모습을 GIF나 동영상으로 만들어 보여준다. 사용자가 결과물을 사용하는 방법을 순서대로 설명한다.
+작성 중...
 
 ## API, Framework
 
