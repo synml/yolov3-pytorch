@@ -75,7 +75,7 @@ os.makedirs(args.save_folder, exist_ok=True)
 for (path, _), prediction in tqdm.tqdm(zip(dataset.imgs, img_predictions), desc='Save images', total=dataset.__len__()):
     # 원본 이미지 열기
     path = path.replace('\\', '/')
-    image = Image.open(path)
+    image = Image.open(path).convert('RGB')
     draw = ImageDraw.Draw(image)
 
     if prediction is not None:
