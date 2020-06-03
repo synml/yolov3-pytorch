@@ -128,7 +128,7 @@
 
 ## Contribution method
 
-1. Fork [this project](https://github.com/LulinPollux/리포지토리_이름).
+1. Fork [this project](https://github.com/LulinPollux/yolov3-pytorch).
 2. Create a new branch or use the master branch in the GitHub Desktop.
 3. Commit the modification.
 4. Push on the selected branch.
