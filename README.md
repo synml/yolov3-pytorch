@@ -48,7 +48,42 @@
 
 ## How to Use, Example
 
-작성 중...
+1. 각 파이썬 파일의 argument를 보고 자신의 환경에 맞게 설정하여 사용하면 됩니다.
+
+2. Demo
+
+   - ```shell
+     $ python demo.py
+     ```
+
+   - 우분투에서 폰트 오류가 발생할 수 있습니다. 이때는 폰트를 변경하거나 /usr/share/fonts/truetype/ 에 폰트를 설치해주세요.
+
+3. Train
+
+   - ```shell
+     $ python train.py
+     ```
+
+   - 텐서보드로 학습 과정을 확인할 수 있습니다.
+
+   - ```shell
+     $ bash exec_tensorboard.sh
+     ```
+
+4. Test
+
+   - ```shell
+     $ python test.py
+     ```
+
+   - 테스트 결과는 csv 파일로 저장됩니다. 엑셀에서 데이터 처리를 할 수 있습니다.
+
+   - | Model                       | mAP (.50 IoU) |
+     | :-------------------------- | ------------- |
+     | YOLOv3 608 (paper)          | 57.9          |
+     | YOLOv3 608 (implementation) | 57.1          |
+     | YOLOv3 416 (paper)          | 55.3          |
+     | YOLOv3 416 (implementation) | 55.6          |
 
 ## API, Framework
 
