@@ -48,19 +48,17 @@
 
 ## How to Use, Example
 
-- 각 파이썬 파일의 argument를 보고 자신의 환경에 맞게 설정하여 사용하면 됩니다.
+1. 각 파이썬 파일의 argument를 보고 자신의 환경에 맞게 설정하여 사용하면 됩니다.
 
-- Demo
+2. Demo
 
    - ```shell
      $ python demo.py
      ```
 
-   - 우분투에서 폰트 오류가 발생할 수 있습니다. 이때는 폰트를 변경하거나 /usr/share/fonts/truetype/ 에 폰트를 설치해주세요.
+   - [![Youtube video](https://img.youtube.com/vi/X0LAgilivvw/maxresdefault.jpg)](https://youtu.be/X0LAgilivvw)
 
-<iframe width="728" height="410" src="https://www.youtube.com/embed/X0LAgilivvw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-1. Train
+3. Train
 
    - ```shell
      $ python train.py
@@ -72,7 +70,7 @@
      $ bash exec_tensorboard.sh
      ```
 
-2. Test
+4. Test
 
    - ```shell
      $ python test.py
