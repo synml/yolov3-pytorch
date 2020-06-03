@@ -13,6 +13,7 @@ import tqdm
 
 import model.yolov3
 import model.yolov3_proposed
+import utils.datasets
 import utils.utils
 
 parser = argparse.ArgumentParser()
@@ -48,16 +49,17 @@ transform = torchvision.transforms.Compose([
     torchvision.transforms.Resize((args.img_size, args.img_size)),
     torchvision.transforms.ToTensor()
 ])
-dataset = torchvision.datasets.ImageFolder(root=args.image_folder, transform=transform)
+dataset = utils.datasets.ImageFolder(args.image_folder, args.img_size)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=False,
                                          num_workers=args.num_workers)
 
 # 객체를 검출하는 코드
-model.eval()  # 모델을 evaluation mode로 설정
+model.eval()        # 모델을 evaluation mode로 설정
 img_predictions = []  # 각 이미지의 예측 결과 저장
-for imgs, _ in tqdm.tqdm(dataloader, desc='Batch'):
+img_paths = []      # 각 이미지의 경로 저장
+for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
     with torch.no_grad():
         imgs = imgs.to(device)
         prediction = model(imgs)
@@ -65,6 +67,7 @@ for imgs, _ in tqdm.tqdm(dataloader, desc='Batch'):
 
     # 예측 결과 저장
     img_predictions.extend(prediction)
+    img_paths.extend(paths)
 
 # bounding box colormap 설정
 cmap = np.array(plt.cm.get_cmap('Paired').colors)
@@ -72,7 +75,7 @@ cmap_rgb: list = np.multiply(cmap, 255).astype(np.int32).tolist()
 
 # 결과 이미지를 저장하는 코드
 os.makedirs(args.save_folder, exist_ok=True)
-for (path, _), prediction in tqdm.tqdm(zip(dataset.imgs, img_predictions), desc='Save images', total=dataset.__len__()):
+for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save images', total=dataset.__len__()):
     # 원본 이미지 열기
     path = path.replace('\\', '/')
     image = Image.open(path).convert('RGB')

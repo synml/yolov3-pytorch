@@ -1,4 +1,5 @@
 import os
+import glob
 import random
 
 import torch
@@ -39,6 +40,27 @@ def pad_to_square(img, pad_value):
 def resize(image, size):
     image = F.interpolate(image.unsqueeze(0), size=size, mode='bilinear', align_corners=True).squeeze(0)
     return image
+
+
+class ImageFolder(torch.utils.data.Dataset):
+    def __init__(self, folder_path, img_size=416):
+        self.files = sorted(glob.glob("%s/*.*" % folder_path))
+        self.img_size = img_size
+
+    def __getitem__(self, index):
+        img_path = self.files[index % len(self.files)]
+        # Extract image as PyTorch tensor
+        img = torchvision.transforms.ToTensor()(Image.open(img_path).convert('RGB'))
+
+        # Pad to square resolution
+        img, _ = pad_to_square(img, 0)
+
+        # Resize
+        img = resize(img, self.img_size)
+        return img_path, img
+
+    def __len__(self):
+        return len(self.files)
 
 
 class ListDataset(torch.utils.data.Dataset):
