@@ -56,7 +56,8 @@
      $ python demo.py
      ```
 
-   - [![Youtube video](https://img.youtube.com/vi/X0LAgilivvw/maxresdefault.jpg)](https://youtu.be/X0LAgilivvw)
+   - 아래 사진을 클릭하면 Youtube 동영상 페이지로 이동합니다.
+[![Youtube video](https://img.youtube.com/vi/X0LAgilivvw/maxresdefault.jpg)](https://youtu.be/X0LAgilivvw)
 
 3. Train
 
