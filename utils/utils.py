@@ -1,11 +1,10 @@
 import torch
 import numpy as np
 import tqdm
-import copy
 
 
 def parse_data_config(path: str):
-    """ 데이터셋 설정 파일을 parse한다. """
+    """데이터셋 설정 파일을 parse한다."""
     options = {}
     with open(path, 'r') as f:
         lines = f.readlines()
@@ -17,7 +16,7 @@ def parse_data_config(path: str):
 
 
 def load_classes(path: str):
-    """ 클래스 이름을 로드한다. """
+    """클래스 이름을 로드한다."""
     with open(path, "r") as f:
         names = f.readlines()
     for i in range(len(names)):
@@ -26,7 +25,7 @@ def load_classes(path: str):
 
 
 def init_weights_normal(m):
-    """ 정규분포 형태로 가중치를 초기화한다. """
+    """정규분포 형태로 가중치를 초기화한다."""
     classname = m.__class__.__name__
     if classname.find("Conv") != -1:
         torch.nn.init.kaiming_normal_(m.weight.data, 0.1)
@@ -37,7 +36,7 @@ def init_weights_normal(m):
 
 
 def rescale_boxes_original(prediction, rescaled_size: int, original_size: tuple):
-    """ Rescale bounding boxes to the original shape. """
+    """Rescale bounding boxes to the original shape."""
     ow, oh = original_size
     resize_ratio = rescaled_size / max(original_size)
 
@@ -76,58 +75,6 @@ def rescale_boxes_original(prediction, rescaled_size: int, original_size: tuple)
     return prediction
 
 
-# Unused code
-def rescale_boxes_yolo(targets, original_size: tuple, rescaled_size: int):
-    """ Rescale bounding boxes to the YOLO input shape. """
-    ow, oh = original_size
-    resize_ratio = rescaled_size / max(original_size)
-
-    # (cx, cy, w, h) -> (x1, y1, x2, y2)
-    temp = copy.deepcopy(targets)
-    temp[:, 1] = targets[:, 1] - targets[:, 3] / 2
-    temp[:, 2] = targets[:, 2] - targets[:, 4] / 2
-    temp[:, 3] = targets[:, 1] + targets[:, 3] / 2
-    temp[:, 4] = targets[:, 2] + targets[:, 4] / 2
-
-    # 비율값 -> 원본 이미지 좌표값
-    temp[:, 1] *= ow
-    temp[:, 2] *= oh
-    temp[:, 3] *= ow
-    temp[:, 4] *= oh
-
-    # 각 좌표에 1 더해주기
-    temp[:, 1:] += 1
-    targets = temp
-
-    # 적용된 패딩 계산
-    if ow > oh:
-        resized_w = rescaled_size
-        resized_h = round(min(original_size) * resize_ratio)
-        pad_x = 0
-        pad_y = abs(resized_w - resized_h)
-    else:
-        resized_w = round(min(original_size) * resize_ratio)
-        resized_h = rescaled_size
-        pad_x = abs(resized_w - resized_h)
-        pad_y = 0
-
-    # Rescale bounding boxes
-    targets[:, 1] = (targets[:, 1] + pad_x // 2) * resize_ratio
-    targets[:, 2] = (targets[:, 2] + pad_y // 2) * resize_ratio
-    targets[:, 3] = (targets[:, 3] + pad_x // 2) * resize_ratio
-    targets[:, 4] = (targets[:, 4] + pad_y // 2) * resize_ratio
-
-    # (x1, y1, x2, y2) -> (cx, cy, w, h)
-    temp = copy.deepcopy(targets)
-    temp[:, 1] = targets[:, 1] + targets[:, 3] / 2
-    temp[:, 2] = targets[:, 2] + targets[:, 4] / 2
-    temp[:, 3] = targets[:, 3] - targets[:, 1]
-    temp[:, 4] = targets[:, 4] - targets[:, 2]
-    targets = temp
-
-    return targets
-
-
 def xywh2xyxy(x):
     y = x.new(x.shape)
     y[..., 0] = x[..., 0] - x[..., 2] / 2
@@ -138,7 +85,7 @@ def xywh2xyxy(x):
 
 
 def ap_per_class(tp, conf, pred_cls, target_cls):
-    """ Compute the average precision, given the recall and precision curves.
+    """Compute the average precision, given the recall and precision curves.
     Source: https://github.com/rafaelpadilla/Object-Detection-Metrics.
     # Arguments
         tp:    True positives (list).
@@ -193,7 +140,8 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
 
 
 def compute_ap(recall, precision):
-    """ Compute the average precision, given the recall and precision curves.
+    """
+    Compute the average precision, given the recall and precision curves.
     Code originally from https://github.com/rbgirshick/py-faster-rcnn.
     # Arguments
         recall:    The recall curve (list).
@@ -220,7 +168,7 @@ def compute_ap(recall, precision):
 
 
 def get_batch_statistics(outputs, targets, iou_threshold):
-    """ Compute true positives, predicted scores and predicted labels per sample. """
+    """Compute true positives, predicted scores and predicted labels per sample."""
     batch_metrics = []
     for sample_i in range(len(outputs)):
 
@@ -268,7 +216,7 @@ def bbox_wh_iou(wh1, wh2):
 
 
 def bbox_iou(box1, box2, x1y1x2y2=True):
-    """ Returns the IoU of two bounding boxes. """
+    """Returns the IoU of two bounding boxes."""
     if not x1y1x2y2:
         # Transform from center and width to exact coordinates
         b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2
