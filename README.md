@@ -111,11 +111,11 @@
   - Miniconda
   - Cuda 10.2
 - Setting up develop environment
-  - Make sure you have Anaconda or Miniconda installed.
-  - Create a new virtual environment and install the above library.
-  - Download the code to your repository as a clone, fork or ZIP file.
-  - Open the downloaded file with your IDE or text editor.
-  - Start coding~!
+  1. Make sure you have Anaconda or Miniconda installed.
+  2. Create a new virtual environment and install the above library.
+  3. Download the code to your repository as a clone, fork or ZIP file.
+  4. Open the downloaded file with your IDE or text editor.
+  5. Start coding~!
 
 ## Developer information and credits
 
