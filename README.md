@@ -111,20 +111,18 @@
   - Miniconda
   - Cuda 10.2
 - Setting up develop environment
-  - Anaconda 또는 Miniconda가 설치되어 있는지 확인하세요.
-  - 새 가상환경을 만들고 위의 라이브러리를 설치하세요.
-  - 리포지토리를 클론, 포크하거나 압축파일로 코드를 다운로드하세요.
-  - IDE 또는 텍스트 에디터로 다운로드한 파일을 여세요.
-  - 코딩 시작~!
+  - Make sure you have Anaconda or Miniconda installed.
+  - Create a new virtual environment and install the above library.
+  - Download the code to your repository as a clone, fork or ZIP file.
+  - Open the downloaded file with your IDE or text editor.
+  - Start coding~!
 
 ## Developer information and credits
 
 - Developer
-  
   - Lulin - [Github Profile](https://github.com/LulinPollux), kistssy+dev@gmail.com
-  
-- Credits
 
+- Credits
   - YOLOv3: An Incremental Improvement [[Paper\]](https://pjreddie.com/media/files/papers/YOLOv3.pdf) [[Authors' Webpage\]](https://pjreddie.com/darknet/yolo/) [[Authors' Implementation\]](https://github.com/pjreddie/darknet)
   - [How to implement a YOLOv3 object detector from scratch in PyTorch](https://blog.paperspace.com/how-to-implement-a-yolo-object-detector-in-pytorch/)
   - eriklindernoren's PyTorch-YOLOv3 [[Github\]](https://github.com/eriklindernoren/PyTorch-YOLOv3)
