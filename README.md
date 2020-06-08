@@ -86,14 +86,16 @@
 
    - Test results are saved as csv files. The table below shows the test results for each method.
 
-   - | Method                      | mAP (.50 IoU) |
-     | :-------------------------- | ------------- |
-     | YOLOv3 320 (paper)          | 51.5          |
-     | YOLOv3 320 (implementation) | 52.5          |
-     | YOLOv3 416 (paper)          | 55.3          |
-     | YOLOv3 416 (implementation) | 55.6          |
-     | YOLOv3 608 (paper)          | 57.9          |
-     | YOLOv3 608 (implementation) | 57.1          |
+     - | Method                      | mAP (.50 IoU) | time (ms)<sup>1</sup> |
+       | :-------------------------- | ------------- | --------------------- |
+       | YOLOv3 320 (paper)          | 51.5          | 22                    |
+       | YOLOv3 320 (implementation) | 52.5          | 32                    |
+       | YOLOv3 416 (paper)          | 55.3          | 29                    |
+       | YOLOv3 416 (implementation) | 55.6          | 36                    |
+       | YOLOv3 608 (paper)          | 57.9          | 51                    |
+       | YOLOv3 608 (implementation) | 57.1          | 48                    |
+       
+       <sup><strong>1</strong></sup> Results vary significantly depending on the execution environment.
 
 ## API, Framework
 
