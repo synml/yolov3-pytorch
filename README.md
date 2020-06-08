@@ -97,9 +97,9 @@
 
 ## API, Framework
 
+- Python 3.7.7
 - PyTorch 1.5.0
 - Matplotlib
-- Python 3.7.7
 - Tensorboard 2.2.1
 - Tqdm
 
@@ -131,7 +131,6 @@
   - YOLOv3: An Incremental Improvement [[Paper\]](https://pjreddie.com/media/files/papers/YOLOv3.pdf) [[Authors' Webpage\]](https://pjreddie.com/darknet/yolo/) [[Authors' Implementation\]](https://github.com/pjreddie/darknet)
   - [How to implement a YOLOv3 object detector from scratch in PyTorch](https://blog.paperspace.com/how-to-implement-a-yolo-object-detector-in-pytorch/)
   - eriklindernoren's PyTorch-YOLOv3 [[Github\]](https://github.com/eriklindernoren/PyTorch-YOLOv3)
-  - ultralytics's yolov3 [[Github\]](https://github.com/ultralytics/yolov3)
 
 ## Contribution method
 
