@@ -17,7 +17,7 @@ def horisontal_flip(images, targets):
 
 
 def pad_to_square(img, pad_value):
-    c, h, w = img.shape
+    _, h, w = img.shape
 
     # 너비와 높이의 차
     difference = abs(h - w)

@@ -318,7 +318,7 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres, device):
 
     # Get anchors with best iou
     ious = torch.stack([bbox_wh_iou(anchor, gwh) for anchor in anchors])
-    best_ious, best_n = ious.max(0)
+    _, best_ious_idx = ious.max(0)
 
     # Separate target values
     b, target_labels = target[:, :2].long().t()
@@ -327,27 +327,27 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres, device):
     gi, gj = gxy.long().t()
 
     # Set masks
-    obj_mask[b, best_n, gj, gi] = 1
-    noobj_mask[b, best_n, gj, gi] = 0
+    obj_mask[b, best_ious_idx, gj, gi] = 1
+    noobj_mask[b, best_ious_idx, gj, gi] = 0
 
     # Set noobj mask to zero where iou exceeds ignore threshold
     for i, anchor_ious in enumerate(ious.t()):
         noobj_mask[b[i], anchor_ious > ignore_thres, gj[i], gi[i]] = 0
 
     # Coordinates
-    tx[b, best_n, gj, gi] = gx - gx.floor()
-    ty[b, best_n, gj, gi] = gy - gy.floor()
+    tx[b, best_ious_idx, gj, gi] = gx - gx.floor()
+    ty[b, best_ious_idx, gj, gi] = gy - gy.floor()
 
     # Width and height
-    tw[b, best_n, gj, gi] = torch.log(gw / anchors[best_n][:, 0] + 1e-16)
-    th[b, best_n, gj, gi] = torch.log(gh / anchors[best_n][:, 1] + 1e-16)
+    tw[b, best_ious_idx, gj, gi] = torch.log(gw / anchors[best_ious_idx][:, 0] + 1e-16)
+    th[b, best_ious_idx, gj, gi] = torch.log(gh / anchors[best_ious_idx][:, 1] + 1e-16)
 
     # One-hot encoding of label
-    tcls[b, best_n, gj, gi, target_labels] = 1
+    tcls[b, best_ious_idx, gj, gi, target_labels] = 1
 
     # Compute label correctness and iou at best anchor
-    class_mask[b, best_n, gj, gi] = (pred_cls[b, best_n, gj, gi].argmax(-1) == target_labels).float()
-    iou_scores[b, best_n, gj, gi] = bbox_iou(pred_boxes[b, best_n, gj, gi], target_boxes, x1y1x2y2=False)
+    class_mask[b, best_ious_idx, gj, gi] = (pred_cls[b, best_ious_idx, gj, gi].argmax(-1) == target_labels).float()
+    iou_scores[b, best_ious_idx, gj, gi] = bbox_iou(pred_boxes[b, best_ious_idx, gj, gi], target_boxes, x1y1x2y2=False)
 
     tconf = obj_mask.float()
     return iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf
