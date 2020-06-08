@@ -28,23 +28,26 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
     labels = []
     sample_metrics = []  # List[Tuple] -> [(TP, confs, pred)]
+    inference_time = 0
     for _, imgs, targets in tqdm.tqdm(dataloader, desc='Detecting objects', leave=False):
 
         if targets is None:
             continue
 
         # Extract labels
-        labels += targets[:, 1].tolist()
+        labels.extend(targets[:, 1].tolist())
         # Rescale target
         targets[:, 2:] = utils.utils.xywh2xyxy(targets[:, 2:])
         targets[:, 2:] *= img_size
 
+        start_time = time.time()
         with torch.no_grad():
             imgs = imgs.to(device)
             outputs = model(imgs)
             outputs = utils.utils.non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
+        inference_time += time.time() - start_time
 
-        sample_metrics += utils.utils.get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
+        sample_metrics.extend(utils.utils.get_batch_statistics(outputs, targets, iou_threshold=iou_thres))
 
     # Concatenate sample statistics
     if len(sample_metrics) == 0:
@@ -53,7 +56,12 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
     precision, recall, AP, f1, ap_class = utils.utils.ap_per_class(true_positives, pred_scores, pred_labels, labels)
 
-    return precision, recall, AP, f1, ap_class
+    # Calculate inference time and fps
+    inference_time /= dataset.__len__()
+    inference_time *= 1000
+    fps = 1000 / inference_time
+
+    return precision, recall, AP, f1, ap_class, inference_time, fps
 
 
 if __name__ == "__main__":
@@ -87,23 +95,25 @@ if __name__ == "__main__":
         model.load_darknet_weights(args.pretrained_weights)
 
     # 검증 데이터셋으로 모델을 평가
-    precision, recall, AP, f1, ap_class = evaluate(model,
-                                                   path=valid_path,
-                                                   iou_thres=args.iou_thres,
-                                                   conf_thres=args.conf_thres,
-                                                   nms_thres=args.nms_thres,
-                                                   img_size=args.img_size,
-                                                   batch_size=args.batch_size,
-                                                   num_workers=args.num_workers,
-                                                   device=device)
+    precision, recall, AP, f1, ap_class, inference_time, fps = evaluate(model,
+                                                                        path=valid_path,
+                                                                        iou_thres=args.iou_thres,
+                                                                        conf_thres=args.conf_thres,
+                                                                        nms_thres=args.nms_thres,
+                                                                        img_size=args.img_size,
+                                                                        batch_size=args.batch_size,
+                                                                        num_workers=args.num_workers,
+                                                                        device=device)
 
-    # AP와 mAP 출력
+    # AP, mAP, inference_time 출력
     print('Average Precisions:')
     for i, class_num in enumerate(ap_class):
         print('\tClass {} ({}) - AP: {:.02f}'.format(class_num, class_names[class_num], AP[i] * 100))
     print('mAP: {:.02f}'.format(AP.mean() * 100))
+    print('Inference_time (ms): {:.02f}'.format(inference_time))
+    print('FPS: {:.02f}'.format(fps))
 
-    # AP와 mAP를 csv 파일로 저장
+    # AP, mAP, inference_time을 csv 파일로 저장
     os.makedirs('csv', exist_ok=True)
     now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
     with open('csv/test{}.csv'.format(now), mode='w') as f:
@@ -113,4 +123,6 @@ if __name__ == "__main__":
         for i, class_num in enumerate(ap_class):
             writer.writerow([class_num, class_names[class_num], AP[i] * 100])
         writer.writerow(['mAP', AP.mean() * 100, ' '])
+        writer.writerow(['Inference_time (ms)', inference_time, ' '])
+        writer.writerow(['FPS', fps, ' '])
     print('Saved result csv file.')

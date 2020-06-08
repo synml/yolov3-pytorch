@@ -105,15 +105,15 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     scheduler.step()
 
     # 검증 데이터셋으로 모델을 평가
-    precision, recall, AP, f1, ap_class = evaluate(model,
-                                                   path=valid_path,
-                                                   iou_thres=0.5,
-                                                   conf_thres=0.5,
-                                                   nms_thres=0.5,
-                                                   img_size=args.img_size,
-                                                   batch_size=args.batch_size,
-                                                   num_workers=args.n_cpu,
-                                                   device=device)
+    precision, recall, AP, f1, _, _, _ = evaluate(model,
+                                                  path=valid_path,
+                                                  iou_thres=0.5,
+                                                  conf_thres=0.5,
+                                                  nms_thres=0.5,
+                                                  img_size=args.img_size,
+                                                  batch_size=args.batch_size,
+                                                  num_workers=args.n_cpu,
+                                                  device=device)
 
     # Tensorboard에 평가 결과 기록
     writer.add_scalar('val_precision', precision.mean(), epoch)
