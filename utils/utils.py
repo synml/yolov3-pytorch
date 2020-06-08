@@ -19,8 +19,8 @@ def load_classes(path: str):
     """클래스 이름을 로드한다."""
     with open(path, "r") as f:
         names = f.readlines()
-    for i in range(len(names)):
-        names[i] = names[i].strip()
+    for i, name in enumerate(names):
+        names[i] = name.strip()
     return names
 
 
@@ -85,7 +85,8 @@ def xywh2xyxy(x):
 
 
 def ap_per_class(tp, conf, pred_cls, target_cls):
-    """Compute the average precision, given the recall and precision curves.
+    """
+    Compute the average precision, given the recall and precision curves.
     Source: https://github.com/rafaelpadilla/Object-Detection-Metrics.
     # Arguments
         tp:    True positives (list).
@@ -170,19 +171,18 @@ def compute_ap(recall, precision):
 def get_batch_statistics(outputs, targets, iou_threshold):
     """Compute true positives, predicted scores and predicted labels per sample."""
     batch_metrics = []
-    for sample_i in range(len(outputs)):
+    for i, output in enumerate(outputs):
 
-        if outputs[sample_i] is None:
+        if output is None:
             continue
 
-        output = outputs[sample_i]
         pred_boxes = output[:, :4]
         pred_scores = output[:, 4]
         pred_labels = output[:, -1]
 
         true_positives = np.zeros(pred_boxes.shape[0])
 
-        annotations = targets[targets[:, 0] == sample_i][:, 1:]
+        annotations = targets[targets[:, 0] == i][:, 1:]
         target_labels = annotations[:, 0] if len(annotations) else []
         if len(annotations):
             detected_boxes = []

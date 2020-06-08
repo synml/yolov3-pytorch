@@ -268,8 +268,7 @@ class YOLOv3(nn.Module):
     def load_darknet_weights(self, weights_path: str):
         # Open the weights file
         with open(weights_path, "rb") as f:
-            header = np.fromfile(f, dtype=np.int32, count=5)  # First five are header values (0~2: version, 3~4: seen)
-            seen = header[3]  # number of images seen during training
+            _ = np.fromfile(f, dtype=np.int32, count=5)  # First five are header values (0~2: version, 3~4: seen)
             weights = np.fromfile(f, dtype=np.float32)  # The rest are weights
 
         ptr = 0
