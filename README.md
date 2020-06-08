@@ -17,9 +17,9 @@
 ## Build Status
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/LulinPollux/yolov3-pytorch)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/549804a561604c54b2b4b8d1dc880b4c)](https://www.codacy.com/manual/Lulin/yolov3-pytorch?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=LulinPollux/yolov3-pytorch&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f9c38f575147482286dcf98dbcad1678)](https://www.codacy.com/manual/Lulin/yolov3-pytorch?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=LulinPollux/yolov3-pytorch&amp;utm_campaign=Badge_Grade)
 ![GitHub last commit](https://img.shields.io/github/last-commit/LulinPollux/yolov3-pytorch)
-![GitHub](https://img.shields.io/github/license/LulinPollux/yolov3-pytorch) 
+![GitHub](https://img.shields.io/github/license/LulinPollux/yolov3-pytorch)
 
 ## How to Install
 
