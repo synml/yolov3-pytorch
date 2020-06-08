@@ -29,17 +29,15 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     labels = []
     sample_metrics = []  # List[Tuple] -> [(TP, confs, pred)]
     inference_time = 0
-    for _, imgs, targets in tqdm.tqdm(dataloader, desc='Detecting objects', leave=False):
-
-        if targets is None:
-            continue
-
+    for _, imgs, targets in tqdm.tqdm(dataloader, desc='Evaluate method', leave=False):
         # Extract labels
         labels.extend(targets[:, 1].tolist())
-        # Rescale target
+
+        # Rescale targets
         targets[:, 2:] = utils.utils.xywh2xyxy(targets[:, 2:])
         targets[:, 2:] *= img_size
 
+        # Predict objects
         start_time = time.time()
         with torch.no_grad():
             imgs = imgs.to(device)
@@ -47,6 +45,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
             outputs = utils.utils.non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
         inference_time += time.time() - start_time
 
+        # Compute true positives, predicted scores and predicted labels per batch
         sample_metrics.extend(utils.utils.get_batch_statistics(outputs, targets, iou_threshold=iou_thres))
 
     # Concatenate sample statistics
@@ -54,9 +53,11 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         true_positives, pred_scores, pred_labels = np.array([]), np.array([]), np.array([])
     else:
         true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
+
+    # Compute AP
     precision, recall, AP, f1, ap_class = utils.utils.ap_per_class(true_positives, pred_scores, pred_labels, labels)
 
-    # Calculate inference time and fps
+    # Compute inference time and fps
     inference_time /= dataset.__len__()
     inference_time *= 1000
     fps = 1000 / inference_time

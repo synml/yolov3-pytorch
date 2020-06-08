@@ -86,7 +86,7 @@ def xywh2xyxy(x):
 
 def ap_per_class(tp, conf, pred_cls, target_cls):
     """
-    Compute the average precision, given the recall and precision curves.
+    Compute the average precision, given the Precision-Recall curve.
     Source: https://github.com/rafaelpadilla/Object-Detection-Metrics.
     # Arguments
         tp:    True positives (list).
@@ -106,7 +106,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
 
     # Create Precision-Recall curve and compute AP for each class
     ap, p, r = [], [], []
-    for c in tqdm.tqdm(unique_classes, desc="Computing AP", leave=False):
+    for c in tqdm.tqdm(unique_classes, desc="Compute AP", leave=False):
         i = pred_cls == c
         n_gt = (target_cls == c).sum()  # Number of ground truth objects
         n_p = i.sum()  # Number of predicted objects
@@ -170,7 +170,7 @@ def compute_ap(recall, precision):
 
 
 def get_batch_statistics(outputs, targets, iou_threshold):
-    """Compute true positives, predicted scores and predicted labels per sample."""
+    """Compute true positives, predicted scores and predicted labels per batch."""
     batch_metrics = []
     for i, output in enumerate(outputs):
 
