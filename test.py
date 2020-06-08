@@ -30,6 +30,9 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     sample_metrics = []  # List[Tuple] -> [(TP, confs, pred)]
     inference_time = 0
     for _, imgs, targets in tqdm.tqdm(dataloader, desc='Evaluate method', leave=False):
+        if targets is None:
+            continue
+
         # Extract labels
         labels.extend(targets[:, 1].tolist())
 
