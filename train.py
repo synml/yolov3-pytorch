@@ -112,7 +112,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
                                                   nms_thres=0.5,
                                                   img_size=args.img_size,
                                                   batch_size=args.batch_size,
-                                                  num_workers=args.n_cpu,
+                                                  num_workers=args.num_workers,
                                                   device=device)
 
     # Tensorboard에 평가 결과 기록
