@@ -95,6 +95,9 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         # Tensorboard에 훈련 과정 기록
         tensorboard_log = []
         for i, yolo_layer in enumerate(model.yolo_layers):
+            writer.add_scalar('loss_bbox_{}'.format(i + 1), yolo_layer.metrics['loss_bbox'], step)
+            writer.add_scalar('loss_conf_{}'.format(i + 1), yolo_layer.metrics['loss_conf'], step)
+            writer.add_scalar('loss_cls_{}'.format(i + 1), yolo_layer.metrics['loss_cls'], step)
             writer.add_scalar('layer_loss_{}'.format(i + 1), yolo_layer.metrics['layer_loss'], step)
         writer.add_scalar('total_loss', loss.item(), step)
     
