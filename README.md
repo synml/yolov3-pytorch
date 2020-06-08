@@ -55,7 +55,7 @@
 
 ## How to Use, Example
 
-1. 각 파이썬 파일의 argument를 보고 자신의 환경에 맞게 설정하여 사용하면 됩니다.
+1. You should check arguments of each Python file and set it according to your environment.
 
 2. Demo
 
@@ -63,7 +63,7 @@
      $ python demo.py
      ```
 
-   - 아래 사진을 클릭하면 Youtube 동영상 페이지로 이동합니다.
+   - If you click the below picture, this page will move to the Youtube video page.
 [![Youtube video](https://img.youtube.com/vi/X0LAgilivvw/maxresdefault.jpg)](https://youtu.be/X0LAgilivvw)
 
 3. Train
@@ -72,7 +72,7 @@
      $ python train.py
      ```
 
-   - 텐서보드로 학습 과정을 확인할 수 있습니다.
+   - You can check the training process with the TensorBoard.
 
    - ```shell
      $ bash exec_tensorboard.sh
@@ -84,7 +84,7 @@
      $ python test.py
      ```
 
-   - 테스트 결과는 csv 파일로 저장됩니다. 엑셀에서 데이터 처리를 할 수 있습니다.
+   - Test results are saved as csv files. The table below shows the test results for each method.
 
    - | Method                      | mAP (.50 IoU) |
      | :-------------------------- | ------------- |
@@ -111,8 +111,8 @@
   - Geforce RTX 2070 Super
   - Samsung SSD 970 PRO 512GB
 - S/W develop environment
-  - Ubuntu 20.04 LTS (주 지원)
-  - Windows10 20H1 (보조 지원)
+  - Ubuntu 20.04 LTS (Primary support)
+  - Windows10 20H1 (Secondary support)
   - Miniconda
   - Cuda 10.2
 - Setting up develop environment
