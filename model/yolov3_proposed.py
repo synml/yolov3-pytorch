@@ -71,7 +71,8 @@ class YOLODetection(nn.Module):
             pred_cls=pred_cls,
             target=targets,
             anchors=scaled_anchors,
-            ignore_thres=self.ignore_thres
+            ignore_thres=self.ignore_thres,
+            device=device
         )
 
         # Loss: Mask outputs to ignore non-existing objects (except with conf. loss)
@@ -291,8 +292,7 @@ class ProposedYOLOv3(nn.Module):
     def load_darknet_weights(self, weights_path: str):
         # Open the weights file
         with open(weights_path, "rb") as f:
-            header = np.fromfile(f, dtype=np.int32, count=5)  # First five are header values (0~2: version, 3~4: seen)
-            seen = header[3]  # number of images seen during training
+            _ = np.fromfile(f, dtype=np.int32, count=5)  # First five are header values (0~2: version, 3~4: seen)
             weights = np.fromfile(f, dtype=np.float32)  # The rest are weights
 
         ptr = 0

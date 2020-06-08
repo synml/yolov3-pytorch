@@ -96,7 +96,6 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
     # Returns
         The average precision as computed in py-faster-rcnn.
     """
-
     # Sort by objectness
     i = np.argsort(-conf)
     tp, conf, pred_cls = tp[i], conf[i], pred_cls[i]
@@ -254,7 +253,6 @@ def non_max_suppression(prediction, conf_thres, nms_thres):
     Returns detections with shape:
         (x1, y1, x2, y2, object_conf, class_score, class_pred)
     """
-
     # (cx, cy, w, h) -> (x1, y1, x2, y2)
     prediction[..., :4] = xywh2xyxy(prediction[..., :4])
     output = [None for _ in range(len(prediction))]
@@ -293,9 +291,7 @@ def non_max_suppression(prediction, conf_thres, nms_thres):
     return output
 
 
-def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
-    device = torch.device('cuda' if pred_boxes.is_cuda else 'cpu')
-
+def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres, device):
     nB = pred_boxes.size(0)
     nA = pred_boxes.size(1)
     nC = pred_cls.size(-1)

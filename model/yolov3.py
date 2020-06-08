@@ -71,7 +71,8 @@ class YOLODetection(nn.Module):
             pred_cls=pred_cls,
             target=targets,
             anchors=scaled_anchors,
-            ignore_thres=self.ignore_thres
+            ignore_thres=self.ignore_thres,
+            device=device
         )
 
         # Loss: Mask outputs to ignore non-existing objects (except with conf. loss)
