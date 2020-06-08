@@ -59,7 +59,8 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
-    parser.add_argument("--num_workers", type=int, default=8, help="number of cpu threads to use during batch generation")
+    parser.add_argument("--num_workers", type=int, default=8,
+                        help="number of cpu threads to use during batch generation")
     parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
     parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                         help="path to pretrained weights file")

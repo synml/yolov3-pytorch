@@ -56,9 +56,9 @@ dataloader = torch.utils.data.DataLoader(dataset,
                                          num_workers=args.num_workers)
 
 # 객체를 검출하는 코드
-model.eval()        # 모델을 evaluation mode로 설정
+model.eval()  # 모델을 evaluation mode로 설정
 img_predictions = []  # 각 이미지의 예측 결과 저장
-img_paths = []      # 각 이미지의 경로 저장
+img_paths = []  # 각 이미지의 경로 저장
 for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
     with torch.no_grad():
         imgs = imgs.to(device)

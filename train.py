@@ -75,7 +75,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
     # 1 epoch의 각 배치에서 처리하는 코드
     for batch_idx, (imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc='Batch', leave=False)):
         step = len(dataloader) * epoch + batch_idx
-        
+
         # 이미지와 정답 정보를 GPU로 복사
         imgs = imgs.to(device)
         targets = targets.to(device)
@@ -100,7 +100,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
             writer.add_scalar('loss_cls_{}'.format(i + 1), yolo_layer.metrics['loss_cls'], step)
             writer.add_scalar('loss_layer_{}'.format(i + 1), yolo_layer.metrics['loss_layer'], step)
         writer.add_scalar('total_loss', loss.item(), step)
-    
+
     # lr scheduler의 step을 진행
     scheduler.step()
 
@@ -114,7 +114,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
                                                    batch_size=args.batch_size,
                                                    num_workers=args.n_cpu,
                                                    device=device)
-    
+
     # Tensorboard에 평가 결과 기록
     writer.add_scalar('val_precision', precision.mean(), epoch)
     writer.add_scalar('val_recall', recall.mean(), epoch)
