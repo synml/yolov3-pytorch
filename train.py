@@ -98,7 +98,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
             writer.add_scalar('loss_bbox_{}'.format(i + 1), yolo_layer.metrics['loss_bbox'], step)
             writer.add_scalar('loss_conf_{}'.format(i + 1), yolo_layer.metrics['loss_conf'], step)
             writer.add_scalar('loss_cls_{}'.format(i + 1), yolo_layer.metrics['loss_cls'], step)
-            writer.add_scalar('layer_loss_{}'.format(i + 1), yolo_layer.metrics['layer_loss'], step)
+            writer.add_scalar('loss_layer_{}'.format(i + 1), yolo_layer.metrics['loss_layer'], step)
         writer.add_scalar('total_loss', loss.item(), step)
     
     # lr scheduler의 step을 진행

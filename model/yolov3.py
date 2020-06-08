@@ -84,7 +84,7 @@ class YOLODetection(nn.Module):
         loss_conf_no_obj = self.bce_loss(pred_conf[no_obj_mask], tconf[no_obj_mask])
         loss_conf = self.obj_scale * loss_conf_obj + self.no_obj_scale * loss_conf_no_obj
         loss_cls = self.bce_loss(pred_cls[obj_mask], tcls[obj_mask])
-        layer_loss = loss_bbox + loss_conf + loss_cls
+        loss_layer = loss_bbox + loss_conf + loss_cls
 
         # Metrics
         conf50 = (pred_conf > 0.5).float()
@@ -107,7 +107,7 @@ class YOLODetection(nn.Module):
             "loss_bbox": loss_bbox.detach().cpu().item(),
             "loss_conf": loss_conf.detach().cpu().item(),
             "loss_cls": loss_cls.detach().cpu().item(),
-            "layer_loss": layer_loss.detach().cpu().item(),
+            "loss_layer": loss_layer.detach().cpu().item(),
             "cls_acc": cls_acc.detach().cpu().item(),
             "conf_obj": conf_obj.detach().cpu().item(),
             "conf_no_obj": conf_no_obj.detach().cpu().item(),
@@ -116,7 +116,7 @@ class YOLODetection(nn.Module):
             "recall75": recall75.detach().cpu().item()
         }
 
-        return output, layer_loss
+        return output, loss_layer
 
 
 class YOLOv3(nn.Module):
