@@ -88,10 +88,12 @@
 
    - | Model                       | mAP (.50 IoU) |
      | :-------------------------- | ------------- |
-     | YOLOv3 608 (paper)          | 57.9          |
-     | YOLOv3 608 (implementation) | 57.1          |
+     | YOLOv3 320 (paper)          | 51.5          |
+     | YOLOv3 320 (implementation) | 52.5          |
      | YOLOv3 416 (paper)          | 55.3          |
      | YOLOv3 416 (implementation) | 55.6          |
+     | YOLOv3 608 (paper)          | 57.9          |
+     | YOLOv3 608 (implementation) | 57.1          |
 
 ## API, Framework
 
