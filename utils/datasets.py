@@ -87,8 +87,16 @@ class ListDataset(torch.utils.data.Dataset):
 
         img_path = self.img_files[index % len(self.img_files)].rstrip()
 
+        if self.augment:
+            transforms = torchvision.transforms.Compose([
+                torchvision.transforms.ColorJitter(brightness=1.5, saturation=1.5, hue=0.1),
+                torchvision.transforms.ToTensor()
+            ])
+        else:
+            transforms = torchvision.transforms.ToTensor()
+
         # Extract image as PyTorch tensor
-        img = torchvision.transforms.ToTensor()(Image.open(img_path).convert('RGB'))
+        img = transforms(Image.open(img_path).convert('RGB'))
 
         _, h, w = img.shape
         h_factor, w_factor = (h, w) if self.normalized_labels else (1, 1)
