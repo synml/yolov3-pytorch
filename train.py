@@ -14,7 +14,7 @@ import utils.utils
 from test import evaluate
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--epoch", type=int, default=100, help="number of epoch")
+parser.add_argument("--epoch", type=int, default=200, help="number of epoch")
 parser.add_argument("--gradient_accumulation", type=int, default=1, help="number of gradient accums before step")
 parser.add_argument("--multiscale_training", type=bool, default=True, help="allow for multi-scale training")
 parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
