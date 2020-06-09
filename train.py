@@ -14,8 +14,8 @@ import utils.utils
 from test import evaluate
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--epochs", type=int, default=100, help="number of epochs")
-parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
+parser.add_argument("--epoch", type=int, default=100, help="number of epoch")
+parser.add_argument("--gradient_accumulation", type=int, default=1, help="number of gradient accums before step")
 parser.add_argument("--multiscale_training", type=bool, default=True, help="allow for multi-scale training")
 parser.add_argument("--batch_size", type=int, default=32, help="size of each image batch")
 parser.add_argument("--num_workers", type=int, default=8, help="number of cpu threads to use during batch generation")
@@ -68,7 +68,7 @@ scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=9, gamma=0.8)
 loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
 
 # Train code.
-for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
+for epoch in tqdm.tqdm(range(args.epoch), desc='Epoch'):
     # 모델을 train mode로 설정
     model.train()
 
@@ -85,7 +85,7 @@ for epoch in tqdm.tqdm(range(args.epochs), desc='Epoch'):
         loss.backward()
 
         # 기울기 누적 (Accumulate gradient)
-        if step % args.gradient_accumulations == 0:
+        if step % args.gradient_accumulation == 0:
             optimizer.step()
             optimizer.zero_grad()
 
