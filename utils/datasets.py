@@ -75,8 +75,8 @@ class ListDataset(torch.utils.data.Dataset):
         self.augment = augment
         self.multiscale = multiscale
         self.normalized_labels = normalized_labels
-        self.min_size = self.img_size - 3 * 32
-        self.max_size = self.img_size + 3 * 32
+        self.min_size = 320
+        self.max_size = 608
         self.batch_count = 0
 
     def __getitem__(self, index):
@@ -155,7 +155,7 @@ class ListDataset(torch.utils.data.Dataset):
         except RuntimeError:
             targets = None  # No boxes for an image
 
-        # Selects new image size every tenth batch
+        # Selects new image size every 10 batches
         if self.multiscale and self.batch_count % 10 == 0:
             self.img_size = random.choice(range(self.min_size, self.max_size + 1, 32))
         # Resize images to input shape
