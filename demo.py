@@ -89,7 +89,7 @@ for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save im
             draw.rectangle(((x1, y1), (x2, y2)), outline=color, width=2)
 
             # label 그리기
-            text = '{}{:.3f}'.format(class_names[int(cls_pred)], obj_conf.item())
+            text = '{} {:.1f}'.format(class_names[int(cls_pred)], obj_conf.item() * 100)
             font = ImageFont.truetype('calibri.ttf', size=12)
             text_width, text_height = font.getsize(text)
             draw.rectangle(((x1, y1), (x1 + text_width, y1 + text_height)), fill=color)
