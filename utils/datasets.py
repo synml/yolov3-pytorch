@@ -82,6 +82,7 @@ class ListDataset(torch.utils.data.Dataset):
         # -----------------------------------------------------------------------------------
         image_path = self.image_files[index].rstrip()
 
+        # Apply augmentations
         if self.augment:
             transforms = torchvision.transforms.Compose([
                 torchvision.transforms.ColorJitter(brightness=1.5, saturation=1.5, hue=0.1),
