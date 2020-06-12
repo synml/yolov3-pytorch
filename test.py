@@ -19,7 +19,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     model.eval()
 
     # 데이터셋, 데이터로더 설정
-    dataset = utils.datasets.ListDataset(path, img_size=img_size, augment=False, multiscale=False)
+    dataset = utils.datasets.ListDataset(path, img_size, augment=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=batch_size,
                                              shuffle=False,
@@ -29,7 +29,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     labels = []
     sample_metrics = []  # List[Tuple] -> [(TP, confs, pred)]
     inference_time = 0
-    for _, imgs, targets in tqdm.tqdm(dataloader, desc='Evaluate method', leave=False):
+    for _, images, targets in tqdm.tqdm(dataloader, desc='Evaluate method', leave=False):
         if targets is None:
             continue
 
@@ -43,13 +43,13 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         # Predict objects
         start_time = time.time()
         with torch.no_grad():
-            imgs = imgs.to(device)
-            outputs = model(imgs)
-            outputs = utils.utils.non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
+            images = images.to(device)
+            outputs = model(images)
+            outputs = utils.utils.non_max_suppression(outputs, conf_thres, nms_thres)
         inference_time += time.time() - start_time
 
         # Compute true positives, predicted scores and predicted labels per batch
-        sample_metrics.extend(utils.utils.get_batch_statistics(outputs, targets, iou_threshold=iou_thres))
+        sample_metrics.extend(utils.utils.get_batch_statistics(outputs, targets, iou_thres))
 
     # Concatenate sample statistics
     if len(sample_metrics) == 0:
