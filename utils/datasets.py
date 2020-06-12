@@ -42,9 +42,9 @@ def resize(image, size):
 
 
 class ImageFolder(torch.utils.data.Dataset):
-    def __init__(self, folder_path, img_size):
+    def __init__(self, folder_path, image_size):
         self.image_files = sorted(glob.glob("{}/*.*".format(folder_path)))
-        self.img_size = img_size
+        self.image_size = image_size
 
     def __getitem__(self, index):
         image_path = self.image_files[index]
@@ -56,7 +56,7 @@ class ImageFolder(torch.utils.data.Dataset):
         image, _ = pad_to_square(image)
 
         # Resize
-        image = resize(image, self.img_size)
+        image = resize(image, self.image_size)
         return image_path, image
 
     def __len__(self):
@@ -64,13 +64,13 @@ class ImageFolder(torch.utils.data.Dataset):
 
 
 class ListDataset(torch.utils.data.Dataset):
-    def __init__(self, list_path: str, img_size: int, augment: bool, multiscale: bool, normalized_labels=True):
+    def __init__(self, list_path: str, image_size: int, augment: bool, multiscale: bool, normalized_labels=True):
         with open(list_path, 'r') as file:
             self.image_files = file.readlines()
 
         self.label_files = [path.replace('images', 'labels').replace('.png', '.txt').replace('.jpg', '.txt')
                                 .replace('JPEGImages', 'labels') for path in self.image_files]
-        self.img_size = img_size
+        self.image_size = image_size
         self.max_objects = 100
         self.augment = augment
         self.multiscale = multiscale
@@ -156,10 +156,10 @@ class ListDataset(torch.utils.data.Dataset):
 
         # Selects new image size every 10 batches
         if self.multiscale and self.batch_count % 10 == 0:
-            self.img_size = random.choice(range(320, 608 + 1, 32))
+            self.image_size = random.choice(range(320, 608 + 1, 32))
 
         # Resize images to input shape
-        images = torch.stack([resize(image, self.img_size) for image in images])
+        images = torch.stack([resize(image, self.image_size) for image in images])
         self.batch_count += 1
 
         return paths, images, targets

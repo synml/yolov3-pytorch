@@ -7,12 +7,12 @@ import utils.utils
 
 
 class YOLODetection(nn.Module):
-    def __init__(self, anchors, img_size: int, num_classes: int):
+    def __init__(self, anchors, image_size: int, num_classes: int):
         super(YOLODetection, self).__init__()
         self.anchors = anchors
         self.num_anchors = len(anchors)
         self.num_classes = num_classes
-        self.img_size = img_size
+        self.image_size = image_size
         self.mse_loss = nn.MSELoss()
         self.bce_loss = nn.BCELoss()
         self.ignore_thres = 0.5
@@ -41,7 +41,7 @@ class YOLODetection(nn.Module):
         pred_cls = torch.sigmoid(prediction[..., 5:])  # Class prediction
 
         # Calculate offsets for each grid
-        stride = self.img_size / grid_size
+        stride = self.image_size / grid_size
         grid_x = torch.arange(grid_size, dtype=torch.float, device=device).repeat(grid_size, 1).view(
             [1, 1, grid_size, grid_size])
         grid_y = torch.arange(grid_size, dtype=torch.float, device=device).repeat(grid_size, 1).t().view(
@@ -121,7 +121,7 @@ class YOLODetection(nn.Module):
 
 
 class YOLOv3(nn.Module):
-    def __init__(self, img_size: int, num_classes: int):
+    def __init__(self, image_size: int, num_classes: int):
         super(YOLOv3, self).__init__()
         anchors = {'scale1': [(116, 90), (156, 198), (373, 326)],
                    'scale2': [(30, 61), (62, 45), (59, 119)],
@@ -131,17 +131,17 @@ class YOLOv3(nn.Module):
         self.darknet53 = self.make_darknet53()
         self.conv_block1 = self.make_conv_block(1024, 512)
         self.conv_final1 = self.make_conv_final(512, final_out_channel)
-        self.yolo_layer1 = YOLODetection(anchors['scale1'], img_size, num_classes)
+        self.yolo_layer1 = YOLODetection(anchors['scale1'], image_size, num_classes)
 
         self.upsample1 = self.make_upsample(512, 256, scale_factor=2)
         self.conv_block2 = self.make_conv_block(768, 256)
         self.conv_final2 = self.make_conv_final(256, final_out_channel)
-        self.yolo_layer2 = YOLODetection(anchors['scale2'], img_size, num_classes)
+        self.yolo_layer2 = YOLODetection(anchors['scale2'], image_size, num_classes)
 
         self.upsample2 = self.make_upsample(256, 128, scale_factor=2)
         self.conv_block3 = self.make_conv_block(384, 128)
         self.conv_final3 = self.make_conv_final(128, final_out_channel)
-        self.yolo_layer3 = YOLODetection(anchors['scale3'], img_size, num_classes)
+        self.yolo_layer3 = YOLODetection(anchors['scale3'], image_size, num_classes)
 
         self.yolo_layers = [self.yolo_layer1, self.yolo_layer2, self.yolo_layer3]
 
@@ -367,7 +367,7 @@ class YOLOv3(nn.Module):
 
 
 if __name__ == '__main__':
-    model = YOLOv3(img_size=416, num_classes=80)
+    model = YOLOv3(image_size=416, num_classes=80)
     model.load_darknet_weights('../weights/yolov3.weights')
     print(model)
 

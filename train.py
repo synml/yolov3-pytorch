@@ -22,7 +22,7 @@ parser.add_argument("--num_workers", type=int, default=8, help="number of cpu th
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weights", type=str, default='weights/darknet53.conv.74',
                     help="if specified starts from checkpoint model")
-parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
+parser.add_argument("--image_size", type=int, default=416, help="size of each image dimension")
 args = parser.parse_args()
 print(args)
 
@@ -42,7 +42,7 @@ num_classes = int(data_config['classes'])
 class_names = utils.utils.load_classes(data_config['names'])
 
 # 모델 준비하기
-model = model.yolov3.YOLOv3(args.img_size, num_classes).to(device)
+model = model.yolov3.YOLOv3(args.image_size, num_classes).to(device)
 model.apply(utils.utils.init_weights_normal)
 if args.pretrained_weights.endswith('.pth'):
     model.load_state_dict(torch.load(args.pretrained_weights))
@@ -50,7 +50,7 @@ else:
     model.load_darknet_weights(args.pretrained_weights)
 
 # 데이터셋, 데이터로더 설정
-dataset = utils.datasets.ListDataset(train_path, args.img_size, augment=True, multiscale=args.multiscale_training)
+dataset = utils.datasets.ListDataset(train_path, args.image_size, augment=True, multiscale=args.multiscale_training)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=True,
@@ -110,7 +110,7 @@ for epoch in tqdm.tqdm(range(args.epoch), desc='Epoch'):
                                                   iou_thres=0.5,
                                                   conf_thres=0.5,
                                                   nms_thres=0.5,
-                                                  img_size=args.img_size,
+                                                  image_size=args.image_size,
                                                   batch_size=args.batch_size,
                                                   num_workers=args.num_workers,
                                                   device=device)

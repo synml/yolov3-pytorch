@@ -14,12 +14,12 @@ import utils.datasets
 import utils.utils
 
 
-def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, num_workers, device):
+def evaluate(model, path, iou_thres, conf_thres, nms_thres, image_size, batch_size, num_workers, device):
     # 모델을 evaluation mode로 설정
     model.eval()
 
     # 데이터셋, 데이터로더 설정
-    dataset = utils.datasets.ListDataset(path, img_size, augment=False, multiscale=False)
+    dataset = utils.datasets.ListDataset(path, image_size, augment=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=batch_size,
                                              shuffle=False,
@@ -38,7 +38,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
         # Rescale targets
         targets[:, 2:] = utils.utils.xywh2xyxy(targets[:, 2:])
-        targets[:, 2:] *= img_size
+        targets[:, 2:] *= image_size
 
         # Predict objects
         start_time = time.time()
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
     parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                         help="path to pretrained weights file")
-    parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
+    parser.add_argument("--image_size", type=int, default=416, help="size of each image dimension")
     parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
     parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.5, help="iou threshold for non-maximum suppression")
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     class_names = utils.utils.load_classes(data_config['names'])
 
     # 모델 준비하기
-    model = model.yolov3.YOLOv3(args.img_size, num_classes).to(device)
+    model = model.yolov3.YOLOv3(args.image_size, num_classes).to(device)
     if args.pretrained_weights.endswith('.pth'):
         model.load_state_dict(torch.load(args.pretrained_weights))
     else:
@@ -104,7 +104,7 @@ if __name__ == "__main__":
                                                                         iou_thres=args.iou_thres,
                                                                         conf_thres=args.conf_thres,
                                                                         nms_thres=args.nms_thres,
-                                                                        img_size=args.img_size,
+                                                                        image_size=args.image_size,
                                                                         batch_size=args.batch_size,
                                                                         num_workers=args.num_workers,
                                                                         device=device)

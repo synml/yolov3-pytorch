@@ -24,7 +24,7 @@ parser.add_argument("--num_workers", type=int, default=8, help="number of cpu th
 parser.add_argument("--data_config", type=str, default="config/voc.data", help="path to data config file")
 parser.add_argument("--pretrained_weights", type=str, default="weights/yolov3_voc.pth",
                     help="path to pretrained weights file")
-parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
+parser.add_argument("--image_size", type=int, default=416, help="size of each image dimension")
 parser.add_argument("--conf_thres", type=float, default=0.5, help="object confidence threshold")
 parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
 args = parser.parse_args()
@@ -38,14 +38,14 @@ num_classes = int(data_config['classes'])
 class_names = utils.utils.load_classes(data_config['names'])
 
 # 모델 준비하기
-model = model.yolov3.YOLOv3(args.img_size, num_classes).to(device)
+model = model.yolov3.YOLOv3(args.image_size, num_classes).to(device)
 if args.pretrained_weights.endswith('.pth'):
     model.load_state_dict(torch.load(args.pretrained_weights))
 else:
     model.load_darknet_weights(args.pretrained_weights)
 
 # 데이터셋, 데이터로더 설정
-dataset = utils.datasets.ImageFolder(args.image_folder, args.img_size)
+dataset = utils.datasets.ImageFolder(args.image_folder, args.image_size)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
                                          shuffle=False,
@@ -79,7 +79,7 @@ for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save im
 
     if prediction is not None:
         # 원본 이미지로 bounding box를 rescale한다.
-        prediction = utils.utils.rescale_boxes_original(prediction, args.img_size, image.size)
+        prediction = utils.utils.rescale_boxes_original(prediction, args.image_size, image.size)
 
         for x1, y1, x2, y2, obj_conf, cls_conf, cls_pred in prediction:
             # bounding box color 설정
