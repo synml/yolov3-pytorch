@@ -45,10 +45,6 @@ else:
     model.load_darknet_weights(args.pretrained_weights)
 
 # 데이터셋, 데이터로더 설정
-transform = torchvision.transforms.Compose([
-    torchvision.transforms.Resize((args.img_size, args.img_size)),
-    torchvision.transforms.ToTensor()
-])
 dataset = utils.datasets.ImageFolder(args.image_folder, args.img_size)
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=args.batch_size,
@@ -85,7 +81,7 @@ for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save im
         # 원본 이미지로 bounding box를 rescale한다.
         prediction = utils.utils.rescale_boxes_original(prediction, args.img_size, image.size)
 
-        for x1, y1, x2, y2, conf, cls_conf, cls_pred in prediction:
+        for x1, y1, x2, y2, obj_conf, cls_conf, cls_pred in prediction:
             # bounding box color 설정
             color = tuple(cmap_rgb[int(cls_pred) % len(cmap_rgb)])
 
@@ -93,7 +89,7 @@ for path, prediction in tqdm.tqdm(zip(img_paths, img_predictions), desc='Save im
             draw.rectangle(((x1, y1), (x2, y2)), outline=color, width=2)
 
             # label 그리기
-            text = '{}{:.3f}'.format(class_names[int(cls_pred)], cls_conf.item())
+            text = '{}{:.3f}'.format(class_names[int(cls_pred)], obj_conf.item())
             font = ImageFont.truetype('calibri.ttf', size=12)
             text_width, text_height = font.getsize(text)
             draw.rectangle(((x1, y1), (x1 + text_width, y1 + text_height)), fill=color)
