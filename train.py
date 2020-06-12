@@ -62,7 +62,7 @@ dataloader = torch.utils.data.DataLoader(dataset,
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 # learning rate scheduler 설정
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=9, gamma=0.8)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
 
 # 현재 배치 손실값을 출력하는 tqdm 설정
 loss_log = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
