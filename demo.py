@@ -55,10 +55,10 @@ dataloader = torch.utils.data.DataLoader(dataset,
 model.eval()  # 모델을 evaluation mode로 설정
 img_predictions = []  # 각 이미지의 예측 결과 저장
 img_paths = []  # 각 이미지의 경로 저장
-for paths, imgs in tqdm.tqdm(dataloader, desc='Batch'):
+for paths, images in tqdm.tqdm(dataloader, desc='Batch'):
     with torch.no_grad():
-        imgs = imgs.to(device)
-        prediction = model(imgs)
+        images = images.to(device)
+        prediction = model(images)
         prediction = utils.utils.non_max_suppression(prediction, args.conf_thres, args.nms_thres)
 
     # 예측 결과 저장

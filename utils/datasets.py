@@ -16,8 +16,8 @@ def horisontal_flip(images, targets):
     return images, targets
 
 
-def pad_to_square(img, pad_value=0):
-    _, h, w = img.shape
+def pad_to_square(image, pad_value=0):
+    _, h, w = image.shape
 
     # 너비와 높이의 차
     difference = abs(h - w)
@@ -33,43 +33,43 @@ def pad_to_square(img, pad_value=0):
         pad = [left, right, 0, 0]
 
     # Add padding
-    img = F.pad(img, pad, mode='constant', value=pad_value)
-    return img, pad
+    image = F.pad(image, pad, mode='constant', value=pad_value)
+    return image, pad
 
 
 def resize(image, size):
-    return F.interpolate(image.unsqueeze(0), size=size, mode='bilinear', align_corners=True).squeeze(0)
+    return F.interpolate(image.unsqueeze(0), size, mode='bilinear', align_corners=True).squeeze(0)
 
 
 class ImageFolder(torch.utils.data.Dataset):
     def __init__(self, folder_path, img_size):
-        self.files = sorted(glob.glob("{}/*.*".format(folder_path)))
+        self.image_files = sorted(glob.glob("{}/*.*".format(folder_path)))
         self.img_size = img_size
 
     def __getitem__(self, index):
-        img_path = self.files[index % len(self.files)]
+        image_path = self.image_files[index]
 
         # Extract image as PyTorch tensor
-        img = torchvision.transforms.ToTensor()(Image.open(img_path).convert('RGB'))
+        image = torchvision.transforms.ToTensor()(Image.open(image_path).convert('RGB'))
 
         # Pad to square resolution
-        img, _ = pad_to_square(img)
+        image, _ = pad_to_square(image)
 
         # Resize
-        img = resize(img, self.img_size)
-        return img_path, img
+        image = resize(image, self.img_size)
+        return image_path, image
 
     def __len__(self):
-        return len(self.files)
+        return len(self.image_files)
 
 
 class ListDataset(torch.utils.data.Dataset):
-    def __init__(self, list_path: str, img_size: int, augment=True, multiscale=True, normalized_labels=True):
+    def __init__(self, list_path: str, img_size: int, augment: bool, multiscale: bool, normalized_labels=True):
         with open(list_path, 'r') as file:
-            self.img_files = file.readlines()
+            self.image_files = file.readlines()
 
         self.label_files = [path.replace('images', 'labels').replace('.png', '.txt').replace('.jpg', '.txt')
-                                .replace('JPEGImages', 'labels') for path in self.img_files]
+                                .replace('JPEGImages', 'labels') for path in self.image_files]
         self.img_size = img_size
         self.max_objects = 100
         self.augment = augment
@@ -80,7 +80,7 @@ class ListDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         # 1. Image
         # -----------------------------------------------------------------------------------
-        img_path = self.img_files[index % len(self.img_files)].rstrip()
+        image_path = self.image_files[index].rstrip()
 
         if self.augment:
             transforms = torchvision.transforms.Compose([
@@ -91,18 +91,18 @@ class ListDataset(torch.utils.data.Dataset):
             transforms = torchvision.transforms.ToTensor()
 
         # Extract image as PyTorch tensor
-        img = transforms(Image.open(img_path).convert('RGB'))
+        image = transforms(Image.open(image_path).convert('RGB'))
 
-        _, h, w = img.shape
+        _, h, w = image.shape
         h_factor, w_factor = (h, w) if self.normalized_labels else (1, 1)
 
         # Pad to square resolution
-        img, pad = pad_to_square(img)
-        _, padded_h, padded_w = img.shape
+        image, pad = pad_to_square(image)
+        _, padded_h, padded_w = image.shape
 
         # 2. Label
         # -----------------------------------------------------------------------------------
-        label_path = self.label_files[index % len(self.img_files)].rstrip()
+        label_path = self.label_files[index].rstrip()
 
         targets = None
         if os.path.exists(label_path):
@@ -132,15 +132,15 @@ class ListDataset(torch.utils.data.Dataset):
         # Apply augmentations
         if self.augment:
             if np.random.random() < 0.5:
-                img, targets = horisontal_flip(img, targets)
+                image, targets = horisontal_flip(image, targets)
 
-        return img_path, img, targets
+        return image_path, image, targets
 
     def __len__(self):
-        return len(self.img_files)
+        return len(self.image_files)
 
     def collate_fn(self, batch):
-        paths, imgs, targets = list(zip(*batch))
+        paths, images, targets = list(zip(*batch))
 
         # Remove empty placeholder targets
         targets = [boxes for boxes in targets if boxes is not None]
@@ -159,7 +159,7 @@ class ListDataset(torch.utils.data.Dataset):
             self.img_size = random.choice(range(320, 608 + 1, 32))
 
         # Resize images to input shape
-        imgs = torch.stack([resize(img, self.img_size) for img in imgs])
+        images = torch.stack([resize(image, self.img_size) for image in images])
         self.batch_count += 1
 
-        return paths, imgs, targets
+        return paths, images, targets
