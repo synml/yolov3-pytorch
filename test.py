@@ -9,7 +9,6 @@ import numpy as np
 import tqdm
 
 import model.yolov3
-import model.yolov3_proposed
 import utils.datasets
 import utils.utils
 

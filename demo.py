@@ -11,7 +11,6 @@ from PIL import ImageFont
 import tqdm
 
 import model.yolov3
-import model.yolov3_proposed
 import utils.datasets
 import utils.utils
 
