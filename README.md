@@ -100,7 +100,7 @@
 ## API, Framework
 
 - Python 3.7.7
-- PyTorch 1.5.0
+- PyTorch 1.5.1
 - Matplotlib
 - Tensorboard 2.2.1
 - Tqdm
