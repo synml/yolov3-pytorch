@@ -129,19 +129,19 @@ class YOLOv3(nn.Module):
         final_out_channel = 3 * (4 + 1 + num_classes)
 
         self.darknet53 = self.make_darknet53()
-        self.conv_block1 = self.make_conv_block(1024, 512)
-        self.conv_final1 = self.make_conv_final(512, final_out_channel)
-        self.yolo_layer1 = YOLODetection(anchors['scale1'], image_size, num_classes)
+        self.conv_block3 = self.make_conv_block(1024, 512)
+        self.conv_final3 = self.make_conv_final(512, final_out_channel)
+        self.yolo_layer3 = YOLODetection(anchors['scale1'], image_size, num_classes)
 
-        self.upsample1 = self.make_upsample(512, 256, scale_factor=2)
+        self.upsample2 = self.make_upsample(512, 256, scale_factor=2)
         self.conv_block2 = self.make_conv_block(768, 256)
         self.conv_final2 = self.make_conv_final(256, final_out_channel)
         self.yolo_layer2 = YOLODetection(anchors['scale2'], image_size, num_classes)
 
-        self.upsample2 = self.make_upsample(256, 128, scale_factor=2)
-        self.conv_block3 = self.make_conv_block(384, 128)
-        self.conv_final3 = self.make_conv_final(128, final_out_channel)
-        self.yolo_layer3 = YOLODetection(anchors['scale3'], image_size, num_classes)
+        self.upsample1 = self.make_upsample(256, 128, scale_factor=2)
+        self.conv_block1 = self.make_conv_block(384, 128)
+        self.conv_final1 = self.make_conv_final(128, final_out_channel)
+        self.yolo_layer1 = YOLODetection(anchors['scale3'], image_size, num_classes)
 
         self.yolo_layers = [self.yolo_layer1, self.yolo_layer2, self.yolo_layer3]
 
@@ -163,23 +163,23 @@ class YOLOv3(nn.Module):
                         residual_output[key] = x
 
         # Yolov3 layer forward
-        conv_b1 = self.conv_block1(residual_output['residual_5_4'])
-        scale1 = self.conv_final1(conv_b1)
-        yolo_output1, layer_loss = self.yolo_layer1(scale1, targets)
+        conv_block3 = self.conv_block3(residual_output['residual_5_4'])
+        scale3 = self.conv_final3(conv_block3)
+        yolo_output3, layer_loss = self.yolo_layer3(scale3, targets)
         loss += layer_loss
 
-        scale2 = self.upsample1(conv_b1)
+        scale2 = self.upsample2(conv_block3)
         scale2 = torch.cat((scale2, residual_output['residual_4_8']), dim=1)
-        conv_b2 = self.conv_block2(scale2)
-        scale2 = self.conv_final2(conv_b2)
+        conv_block2 = self.conv_block2(scale2)
+        scale2 = self.conv_final2(conv_block2)
         yolo_output2, layer_loss = self.yolo_layer2(scale2, targets)
         loss += layer_loss
 
-        scale3 = self.upsample2(conv_b2)
-        scale3 = torch.cat((scale3, residual_output['residual_3_8']), dim=1)
-        conv_b3 = self.conv_block3(scale3)
-        scale3 = self.conv_final3(conv_b3)
-        yolo_output3, layer_loss = self.yolo_layer3(scale3, targets)
+        scale1 = self.upsample1(conv_block2)
+        scale1 = torch.cat((scale1, residual_output['residual_3_8']), dim=1)
+        conv_block1 = self.conv_block1(scale1)
+        scale1 = self.conv_final1(conv_block1)
+        yolo_output1, layer_loss = self.yolo_layer1(scale1, targets)
         loss += layer_loss
 
         yolo_outputs = [yolo_output1, yolo_output2, yolo_output3]
@@ -288,17 +288,17 @@ class YOLOv3(nn.Module):
 
         # Load YOLOv3 weights
         if weights_path.find('yolov3.weights') != -1:
-            for module in self.conv_block1:
+            for module in self.conv_block3:
                 ptr = self.load_bn_weights(module[1], weights, ptr)
                 ptr = self.load_conv_weights(module[0], weights, ptr)
 
-            ptr = self.load_bn_weights(self.conv_final1[0][1], weights, ptr)
-            ptr = self.load_conv_weights(self.conv_final1[0][0], weights, ptr)
-            ptr = self.load_conv_bias(self.conv_final1[1], weights, ptr)
-            ptr = self.load_conv_weights(self.conv_final1[1], weights, ptr)
+            ptr = self.load_bn_weights(self.conv_final3[0][1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final3[0][0], weights, ptr)
+            ptr = self.load_conv_bias(self.conv_final3[1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final3[1], weights, ptr)
 
-            ptr = self.load_bn_weights(self.upsample1[0][1], weights, ptr)
-            ptr = self.load_conv_weights(self.upsample1[0][0], weights, ptr)
+            ptr = self.load_bn_weights(self.upsample2[0][1], weights, ptr)
+            ptr = self.load_conv_weights(self.upsample2[0][0], weights, ptr)
 
             for module in self.conv_block2:
                 ptr = self.load_bn_weights(module[1], weights, ptr)
@@ -309,17 +309,17 @@ class YOLOv3(nn.Module):
             ptr = self.load_conv_bias(self.conv_final2[1], weights, ptr)
             ptr = self.load_conv_weights(self.conv_final2[1], weights, ptr)
 
-            ptr = self.load_bn_weights(self.upsample2[0][1], weights, ptr)
-            ptr = self.load_conv_weights(self.upsample2[0][0], weights, ptr)
+            ptr = self.load_bn_weights(self.upsample1[0][1], weights, ptr)
+            ptr = self.load_conv_weights(self.upsample1[0][0], weights, ptr)
 
-            for module in self.conv_block3:
+            for module in self.conv_block1:
                 ptr = self.load_bn_weights(module[1], weights, ptr)
                 ptr = self.load_conv_weights(module[0], weights, ptr)
 
-            ptr = self.load_bn_weights(self.conv_final3[0][1], weights, ptr)
-            ptr = self.load_conv_weights(self.conv_final3[0][0], weights, ptr)
-            ptr = self.load_conv_bias(self.conv_final3[1], weights, ptr)
-            ptr = self.load_conv_weights(self.conv_final3[1], weights, ptr)
+            ptr = self.load_bn_weights(self.conv_final1[0][1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final1[0][0], weights, ptr)
+            ptr = self.load_conv_bias(self.conv_final1[1], weights, ptr)
+            ptr = self.load_conv_weights(self.conv_final1[1], weights, ptr)
 
     # Load BN bias, weights, running mean and running variance
     def load_bn_weights(self, bn_layer, weights, ptr: int):
