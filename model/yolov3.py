@@ -123,15 +123,15 @@ class YOLODetection(nn.Module):
 class YOLOv3(nn.Module):
     def __init__(self, image_size: int, num_classes: int):
         super(YOLOv3, self).__init__()
-        anchors = {'scale1': [(116, 90), (156, 198), (373, 326)],
+        anchors = {'scale1': [(10, 13), (16, 30), (33, 23)],
                    'scale2': [(30, 61), (62, 45), (59, 119)],
-                   'scale3': [(10, 13), (16, 30), (33, 23)]}
+                   'scale3': [(116, 90), (156, 198), (373, 326)]}
         final_out_channel = 3 * (4 + 1 + num_classes)
 
         self.darknet53 = self.make_darknet53()
         self.conv_block3 = self.make_conv_block(1024, 512)
         self.conv_final3 = self.make_conv_final(512, final_out_channel)
-        self.yolo_layer3 = YOLODetection(anchors['scale1'], image_size, num_classes)
+        self.yolo_layer3 = YOLODetection(anchors['scale3'], image_size, num_classes)
 
         self.upsample2 = self.make_upsample(512, 256, scale_factor=2)
         self.conv_block2 = self.make_conv_block(768, 256)
@@ -141,7 +141,7 @@ class YOLOv3(nn.Module):
         self.upsample1 = self.make_upsample(256, 128, scale_factor=2)
         self.conv_block1 = self.make_conv_block(384, 128)
         self.conv_final1 = self.make_conv_final(128, final_out_channel)
-        self.yolo_layer1 = YOLODetection(anchors['scale3'], image_size, num_classes)
+        self.yolo_layer1 = YOLODetection(anchors['scale1'], image_size, num_classes)
 
         self.yolo_layers = [self.yolo_layer1, self.yolo_layer2, self.yolo_layer3]
 
