@@ -27,7 +27,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, image_size, batch_si
 
     labels = []
     sample_metrics = []  # List[Tuple] -> [(TP, confs, pred)]
-    inference_time = 0
+    entire_time = 0
     for _, images, targets in tqdm.tqdm(dataloader, desc='Evaluate method', leave=False):
         if targets is None:
             continue
@@ -45,7 +45,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, image_size, batch_si
             images = images.to(device)
             outputs = model(images)
             outputs = utils.utils.non_max_suppression(outputs, conf_thres, nms_thres)
-        inference_time += time.time() - start_time
+        entire_time += time.time() - start_time
 
         # Compute true positives, predicted scores and predicted labels per batch
         sample_metrics.extend(utils.utils.get_batch_statistics(outputs, targets, iou_thres))
@@ -60,9 +60,11 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, image_size, batch_si
     precision, recall, AP, f1, ap_class = utils.utils.ap_per_class(true_positives, pred_scores, pred_labels, labels)
 
     # Compute inference time and fps
-    inference_time /= dataset.__len__()
+    inference_time = entire_time / dataset.__len__()
+    fps = 1 / inference_time
+
+    # Export inference time to miliseconds
     inference_time *= 1000
-    fps = 1000 / inference_time
 
     return precision, recall, AP, f1, ap_class, inference_time, fps
 
