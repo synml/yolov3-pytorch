@@ -16,9 +16,9 @@
 
 ## Build Status
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/LulinPollux/yolov3-pytorch)
-![GitHub last commit](https://img.shields.io/github/last-commit/LulinPollux/yolov3-pytorch)
-![GitHub](https://img.shields.io/github/license/LulinPollux/yolov3-pytorch)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/clovadev/yolov3-pytorch)
+![GitHub last commit](https://img.shields.io/github/last-commit/clovadev/yolov3-pytorch)
+![GitHub](https://img.shields.io/github/license/clovadev/yolov3-pytorch)
 
 ## How to Install
 
