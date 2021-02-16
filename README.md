@@ -17,7 +17,6 @@
 ## Build Status
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/LulinPollux/yolov3-pytorch)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f9c38f575147482286dcf98dbcad1678)](https://www.codacy.com/manual/Lulin/yolov3-pytorch?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=LulinPollux/yolov3-pytorch&amp;utm_campaign=Badge_Grade)
 ![GitHub last commit](https://img.shields.io/github/last-commit/LulinPollux/yolov3-pytorch)
 ![GitHub](https://img.shields.io/github/license/LulinPollux/yolov3-pytorch)
 
@@ -44,7 +43,7 @@
       ```
 
    2. VOC
-      1. [여기](http://host.robots.ox.ac.uk/pascal/VOC/)에서 데이터셋을 다운로드하거나 [제 리포지토리](https://github.com/LulinPollux/dataset-downloader)를 사용하여 다운로드합니다.
+      1. [여기](http://host.robots.ox.ac.uk/pascal/VOC/)에서 데이터셋을 다운로드합니다.
       2. 아카이브 파일을 추출합니다. (VOCdevkit/VOC2007, VOCdevkit/VOC2012)
    3. voc_label.py의 docs를 읽어보고 YOLOv3에서 사용할 라벨을 만드세요.
    
@@ -127,7 +126,7 @@
 ## Developer information and credits
 
 - Developer
-  - Lulin - [Github Profile](https://github.com/LulinPollux), kistssy+dev@gmail.com
+  - Clova - [Github Profile](https://github.com/clovadev)
 
 - Credits
   - YOLOv3: An Incremental Improvement [[Paper\]](https://pjreddie.com/media/files/papers/YOLOv3.pdf) [[Authors' Webpage\]](https://pjreddie.com/darknet/yolo/) [[Authors' Implementation\]](https://github.com/pjreddie/darknet)
