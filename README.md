@@ -135,7 +135,7 @@
 
 ## Contribution method
 
-1. Fork [this project](https://github.com/LulinPollux/yolov3-pytorch).
+1. Fork this repository.
 2. Create a new branch or use the master branch in the GitHub Desktop.
 3. Commit the modification.
 4. Push on the selected branch.
@@ -143,6 +143,6 @@
 
 ## License
 
-MIT License © Lulin
+MIT License
 
 You can find more information in `LICENSE`.
